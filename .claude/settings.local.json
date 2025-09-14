@@ -1,11 +1,12 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(php artisan migrate:rollback:*)",
+      "Bash(php artisan make:controller:*)"
+    ]
+  },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "laravel-boost"
-  ],
-  "permissions": {
-    "allow": [
-      "Bash(php artisan migrate:rollback:*)"
-    ]
-  }
+  ]
 }

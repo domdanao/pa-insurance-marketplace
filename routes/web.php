@@ -121,6 +121,12 @@ Route::middleware(['auth', 'verified', 'merchant'])->prefix('merchant')->name('m
 
     // Analytics
     Route::get('/analytics', [App\Http\Controllers\Merchant\DashboardController::class, 'getAnalytics'])->name('analytics');
+
+    // Document management
+    Route::get('/documents', [App\Http\Controllers\Merchant\DocumentController::class, 'index'])->name('documents');
+    Route::post('/documents', [App\Http\Controllers\Merchant\DocumentController::class, 'store'])->name('documents.store');
+    Route::get('/documents/{document}/download', [App\Http\Controllers\Merchant\DocumentController::class, 'download'])->name('documents.download');
+    Route::delete('/documents/{document}', [App\Http\Controllers\Merchant\DocumentController::class, 'destroy'])->name('documents.destroy');
 });
 
 // Admin Routes
@@ -141,6 +147,15 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::patch('/merchants/{merchant}/suspend', [App\Http\Controllers\Admin\AdminDashboardController::class, 'suspendMerchant'])->name('merchants.suspend');
     Route::patch('/merchants/{merchant}/reject', [App\Http\Controllers\Admin\AdminDashboardController::class, 'rejectMerchant'])->name('merchants.reject');
     Route::patch('/merchants/{merchant}/reactivate', [App\Http\Controllers\Admin\AdminDashboardController::class, 'reactivateMerchant'])->name('merchants.reactivate');
+
+    // Document management
+    Route::get('/documents', [App\Http\Controllers\Admin\MerchantDocumentController::class, 'index'])->name('documents');
+    Route::get('/merchants/{merchant}/documents', [App\Http\Controllers\Admin\MerchantDocumentController::class, 'merchantDocuments'])->name('merchants.documents');
+    Route::get('/documents/{document}/download', [App\Http\Controllers\Admin\MerchantDocumentController::class, 'download'])->name('documents.download');
+    Route::patch('/documents/{document}/approve', [App\Http\Controllers\Admin\MerchantDocumentController::class, 'approve'])->name('documents.approve');
+    Route::patch('/documents/{document}/reject', [App\Http\Controllers\Admin\MerchantDocumentController::class, 'reject'])->name('documents.reject');
+    Route::patch('/documents/{document}/notes', [App\Http\Controllers\Admin\MerchantDocumentController::class, 'updateNotes'])->name('documents.notes');
+    Route::post('/documents/bulk-approve', [App\Http\Controllers\Admin\MerchantDocumentController::class, 'bulkApprove'])->name('documents.bulk-approve');
 
     // Store management
     Route::get('/stores', [App\Http\Controllers\Admin\AdminDashboardController::class, 'stores'])->name('stores');

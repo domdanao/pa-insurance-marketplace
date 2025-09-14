@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Merchant extends Model
@@ -35,6 +36,27 @@ class Merchant extends Model
         'approved_at',
         'approved_by',
         'documents',
+        // Additional KYB fields
+        'sec_registration_number',
+        'dti_registration_number',
+        'business_registration_date',
+        'bir_certificate_number',
+        'mayors_permit_number',
+        'mayors_permit_expiry',
+        'officers',
+        'beneficial_owners',
+        'authorized_capital',
+        'paid_up_capital',
+        'insurance_policy_number',
+        'insurance_provider',
+        'insurance_expiry',
+        'document_requirements',
+        'document_status',
+        'compliance_notes',
+        'last_reviewed_at',
+        'last_reviewed_by',
+        'kyb_completed',
+        'kyb_completed_at',
     ];
 
     protected function casts(): array
@@ -42,6 +64,18 @@ class Merchant extends Model
         return [
             'documents' => 'array',
             'approved_at' => 'datetime',
+            'officers' => 'array',
+            'beneficial_owners' => 'array',
+            'document_requirements' => 'array',
+            'document_status' => 'array',
+            'business_registration_date' => 'date',
+            'mayors_permit_expiry' => 'date',
+            'insurance_expiry' => 'date',
+            'last_reviewed_at' => 'datetime',
+            'kyb_completed' => 'boolean',
+            'kyb_completed_at' => 'datetime',
+            'authorized_capital' => 'decimal:2',
+            'paid_up_capital' => 'decimal:2',
         ];
     }
 
@@ -59,6 +93,16 @@ class Merchant extends Model
     public function approvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function lastReviewedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'last_reviewed_by');
+    }
+
+    public function merchantDocuments(): HasMany
+    {
+        return $this->hasMany(MerchantDocument::class);
     }
 
     // Status helper methods
