@@ -60,6 +60,14 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/{order}/cancel', [App\Http\Controllers\OrderController::class, 'cancel'])->name('cancel');
     });
 
+    // Draft policy application routes
+    Route::prefix('draft-policy')->name('draft-policy.')->group(function () {
+        Route::post('/save', [App\Http\Controllers\DraftPolicyApplicationController::class, 'save'])->name('save');
+        Route::get('/load', [App\Http\Controllers\DraftPolicyApplicationController::class, 'load'])->name('load');
+        Route::delete('/delete', [App\Http\Controllers\DraftPolicyApplicationController::class, 'delete'])->name('delete');
+        Route::get('/check-resume', [App\Http\Controllers\DraftPolicyApplicationController::class, 'checkForResume'])->name('check-resume');
+    });
+
     // Payment routes
     Route::prefix('payment')->name('payment.')->group(function () {
         Route::match(['get', 'post'], '/create-session/{order}', [App\Http\Controllers\PaymentController::class, 'createSession'])->name('create-session');

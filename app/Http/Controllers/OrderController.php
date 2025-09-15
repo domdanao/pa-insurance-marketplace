@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cart;
+use App\Models\DraftPolicyApplication;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
@@ -58,12 +59,29 @@ class OrderController extends Controller
 
         $defaultBillingInfo = $lastOrder?->billing_info ?? [];
 
+        // Check for existing draft
+        $draft = DraftPolicyApplication::forUser($request->user())
+            ->incomplete()
+            ->recent()
+            ->first();
+
+        $draftData = null;
+        if ($draft && ! $draft->isExpired()) {
+            $draftData = [
+                'id' => $draft->id,
+                'current_step' => $draft->current_step,
+                'form_data' => $draft->form_data,
+                'last_accessed_at' => $draft->last_accessed_at->format('M j, Y g:i A'),
+            ];
+        }
+
         return Inertia::render('Checkout/Index', [
             'cartItems' => $cartItems,
             'storeGroups' => $storeGroups,
             'totalAmount' => $totalAmount,
             'formattedTotal' => '₱'.number_format($totalAmount / 100, 2),
             'defaultBillingInfo' => $defaultBillingInfo,
+            'draftData' => $draftData,
         ]);
     }
 
@@ -114,6 +132,31 @@ class OrderController extends Controller
             'agreement_accepted' => ['required', 'accepted'],
             'data_privacy_consent' => ['required', 'accepted'],
         ]);
+
+        // Additional validation for Class II and III plans
+        if (in_array($request->choice_of_plan, ['class_ii', 'class_iii'])) {
+            $request->validate([
+                'family_members' => ['required', 'array', 'min:1'],
+                'family_members.*.relationship' => ['required', 'in:spouse,parent'],
+                'family_members.*.last_name' => ['required', 'string', 'max:100'],
+                'family_members.*.first_name' => ['required', 'string', 'max:100'],
+                'family_members.*.middle_name' => ['nullable', 'string', 'max:100'],
+                'family_members.*.suffix' => ['nullable', 'string', 'max:20'],
+                'family_members.*.gender' => ['nullable', 'in:male,female'],
+                'family_members.*.date_of_birth' => ['required', 'date'],
+                'family_members.*.occupation_education' => ['nullable', 'string', 'max:200'],
+            ]);
+        }
+
+        if ($request->choice_of_plan === 'class_iii') {
+            $request->validate([
+                'children_siblings' => ['required', 'array', 'min:1'],
+                'children_siblings.*.full_name' => ['required', 'string', 'max:200'],
+                'children_siblings.*.relationship' => ['required', 'in:child,sibling'],
+                'children_siblings.*.date_of_birth' => ['required', 'date'],
+                'children_siblings.*.occupation_education' => ['nullable', 'string', 'max:200'],
+            ]);
+        }
 
         $cartItems = Cart::where('user_id', $request->user()->id)
             ->with(['product'])
@@ -202,6 +245,10 @@ class OrderController extends Controller
                     'agreement_accepted' => $request->agreement_accepted,
                     'data_privacy_consent' => $request->data_privacy_consent,
 
+                    // Family member data for Class II and III
+                    'family_members' => $request->family_members ?? [],
+                    'children_siblings' => $request->children_siblings ?? [],
+
                     // Keep legacy fields for backward compatibility
                     'name' => $request->first_name.' '.$request->last_name,
                     'email' => $request->email_address,
@@ -233,6 +280,16 @@ class OrderController extends Controller
                 'currency' => 'PHP',
                 'status' => 'pending',
             ]);
+
+            // Mark any existing draft as completed
+            $draft = DraftPolicyApplication::forUser($request->user())
+                ->incomplete()
+                ->recent()
+                ->first();
+
+            if ($draft) {
+                $draft->markAsCompleted();
+            }
 
             // Redirect to payment session creation (cart will be cleared after successful payment creation)
             return redirect()->route('payment.create-session', ['order' => $order->id]);

@@ -2,8 +2,8 @@ import FlashMessages from '@/components/FlashMessages';
 import MultiStepForm from '@/components/MultiStepForm';
 import StorefrontLayout from '@/layouts/StorefrontLayout';
 import { User } from '@/types';
-import { Head, useForm, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 
 // Occupational Classifications
 const occupationalClasses = {
@@ -58,6 +58,12 @@ interface CheckoutProps {
         postal_code?: string;
         country?: string;
     };
+    draftData?: {
+        id: string;
+        current_step: number;
+        form_data: any;
+        last_accessed_at: string;
+    } | null;
     flash?: {
         success?: string;
         error?: string;
@@ -66,11 +72,93 @@ interface CheckoutProps {
     };
 }
 
-export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, formattedTotal, defaultBillingInfo, flash }: CheckoutProps) {
+export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, formattedTotal, defaultBillingInfo, draftData, flash }: CheckoutProps) {
     const [isRedirecting, setIsRedirecting] = useState(false);
     const [showClassPopover, setShowClassPopover] = useState<string | null>(null);
-    const [currentStep, setCurrentStep] = useState(1);
+    const [currentStep, setCurrentStep] = useState(draftData?.current_step || 1);
+    const [showResumePrompt, setShowResumePrompt] = useState(false);
+    const [isDraftSaving, setIsDraftSaving] = useState(false);
     const { auth } = usePage().props as { auth?: { user: User } };
+
+    // Create initial form data, merging with draft if available
+    const getInitialFormData = () => {
+        const defaultData = {
+            // Application Type
+            application_type: 'new', // 'new' or 'renewal'
+            existing_policy_number: '',
+
+            // Applicant's Information - Name
+            last_name: '',
+            first_name: defaultBillingInfo?.name?.split(' ')[0] || auth?.user?.name?.split(' ')[0] || '',
+            middle_name: '',
+            suffix: '',
+
+            // Mailing Address
+            block_lot_phase_floor_unit: '',
+            street: '',
+            village_subdivision_condo: '',
+            barangay: '',
+            city_municipality: defaultBillingInfo?.city || '',
+            province_state: '',
+            zip_code: defaultBillingInfo?.postal_code || '',
+
+            // Contact & Personal Info
+            mobile_no: '',
+            email_address: defaultBillingInfo?.email || auth?.user?.email || '',
+            tin_sss_gsis_no: '',
+            gender: '', // 'male' or 'female'
+            civil_status: '', // 'single' or 'married'
+            date_of_birth: '',
+            place_of_birth: '',
+            citizenship_nationality: 'Filipino',
+            source_of_funds: '', // 'self_employed' or 'salary'
+
+            // Employment Information
+            name_of_employer_business: '',
+            occupation: '',
+            occupational_classification: '', // 'class_1', 'class_2', 'class_3', 'class_4'
+            nature_of_employment_business: '',
+            employer_business_address: '',
+
+            // Choice of Plan
+            choice_of_plan: '', // 'class_i', 'class_ii', 'class_iii'
+
+            // Family Particulars
+            family_members: [
+                {
+                    relationship: 'spouse_or_parent',
+                    last_name: '',
+                    first_name: '',
+                    middle_name: '',
+                    suffix: '',
+                    gender: '',
+                    date_of_birth: '',
+                    occupation_education: ''
+                }
+            ],
+
+            // Children/Siblings (dynamic)
+            children_siblings: [
+                {
+                    full_name: '',
+                    relationship: '',
+                    date_of_birth: '',
+                    occupation_education: ''
+                }
+            ],
+
+            // Agreement and Privacy
+            agreement_accepted: false,
+            data_privacy_consent: false,
+        };
+
+        // Merge with draft data if available
+        if (draftData?.form_data) {
+            return { ...defaultData, ...draftData.form_data };
+        }
+
+        return defaultData;
+    };
 
     // Define the steps
     const steps = [
@@ -82,75 +170,49 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
         { id: 6, name: 'Legal Agreements', description: 'Terms and privacy consent' },
     ];
 
-    const { data, setData, post, processing, errors } = useForm({
-        // Application Type
-        application_type: 'new', // 'new' or 'renewal'
-        existing_policy_number: '',
+    const { data, setData, processing } = useForm(getInitialFormData());
 
-        // Applicant's Information - Name
-        last_name: '',
-        first_name: defaultBillingInfo?.name?.split(' ')[0] || auth?.user?.name?.split(' ')[0] || '',
-        middle_name: '',
-        suffix: '',
+    // Auto-save draft functionality
+    const saveDraft = async () => {
+        if (isDraftSaving) return;
 
-        // Mailing Address
-        block_lot_phase_floor_unit: '',
-        street: '',
-        village_subdivision_condo: '',
-        barangay: '',
-        city_municipality: defaultBillingInfo?.city || '',
-        province_state: '',
-        zip_code: defaultBillingInfo?.postal_code || '',
+        setIsDraftSaving(true);
+        try {
+            await fetch('/draft-policy/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                },
+                body: JSON.stringify({
+                    current_step: currentStep,
+                    form_data: data,
+                }),
+            });
+        } catch (error) {
+            console.error('Error saving draft:', error);
+        } finally {
+            setIsDraftSaving(false);
+        }
+    };
 
-        // Contact & Personal Info
-        mobile_no: '',
-        email_address: defaultBillingInfo?.email || auth?.user?.email || '',
-        tin_sss_gsis_no: '',
-        gender: '', // 'male' or 'female'
-        civil_status: '', // 'single' or 'married'
-        date_of_birth: '',
-        place_of_birth: '',
-        citizenship_nationality: 'Filipino',
-        source_of_funds: '', // 'self_employed' or 'salary'
+    // Save draft when moving to next step
+    useEffect(() => {
+        if (currentStep > 1) {
+            const timeoutId = setTimeout(() => {
+                saveDraft();
+            }, 1000); // Debounce saves
 
-        // Employment Information
-        name_of_employer_business: '',
-        occupation: '',
-        occupational_classification: '', // 'class_1', 'class_2', 'class_3', 'class_4'
-        nature_of_employment_business: '',
-        employer_business_address: '',
+            return () => clearTimeout(timeoutId);
+        }
+    }, [currentStep, data]);
 
-        // Choice of Plan
-        choice_of_plan: '', // 'class_i', 'class_ii', 'class_iii'
-
-        // Family Particulars
-        family_members: [
-            {
-                relationship: 'spouse_or_parent',
-                last_name: '',
-                first_name: '',
-                middle_name: '',
-                suffix: '',
-                gender: '',
-                date_of_birth: '',
-                occupation_education: ''
-            }
-        ],
-
-        // Children/Siblings (dynamic)
-        children_siblings: [
-            {
-                full_name: '',
-                relationship: '',
-                date_of_birth: '',
-                occupation_education: ''
-            }
-        ],
-
-        // Agreement and Privacy
-        agreement_accepted: false,
-        data_privacy_consent: false,
-    });
+    // Show resume prompt if draft exists
+    useEffect(() => {
+        if (draftData && !showResumePrompt) {
+            setShowResumePrompt(true);
+        }
+    }, [draftData]);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-PH', {
@@ -402,6 +464,61 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
 
                     <FlashMessages flash={flash} />
 
+                    {/* Resume Draft Prompt */}
+                    {showResumePrompt && draftData && (
+                        <div className="rounded-lg bg-blue-50 border border-blue-200 p-4 dark:bg-blue-900/20 dark:border-blue-800">
+                            <div className="flex items-start justify-between">
+                                <div className="flex">
+                                    <div className="flex-shrink-0">
+                                        <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div className="ml-3 flex-1">
+                                        <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                                            Continue Your Application
+                                        </h3>
+                                        <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">
+                                            You have an incomplete application from {draftData.last_accessed_at}. Would you like to continue where you left off?
+                                        </p>
+                                        <div className="mt-3 flex gap-3">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setCurrentStep(draftData.current_step);
+                                                    setShowResumePrompt(false);
+                                                }}
+                                                className="text-sm bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            >
+                                                Continue Application
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setShowResumePrompt(false);
+                                                    // Optionally delete the draft
+                                                    fetch('/draft-policy/delete', { method: 'DELETE' });
+                                                }}
+                                                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
+                                            >
+                                                Start Fresh
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowResumePrompt(false)}
+                                    className="text-blue-400 hover:text-blue-600 dark:text-blue-500 dark:hover:text-blue-300"
+                                >
+                                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="space-y-8">
                         {/* Order Summary */}
                         <div>
@@ -439,7 +556,18 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                         <div>
                             <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
                                 <div className="mb-6">
-                                    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Personal Accident Insurance Application</h2>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Personal Accident Insurance Application</h2>
+                                        {isDraftSaving && (
+                                            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                Saving draft...
+                                            </div>
+                                        )}
+                                    </div>
                                     <p className="text-sm text-gray-600 dark:text-gray-400">Step {currentStep} of {steps.length}: {steps[currentStep - 1]?.description}</p>
                                 </div>
 

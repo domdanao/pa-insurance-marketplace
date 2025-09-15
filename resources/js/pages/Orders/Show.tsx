@@ -38,12 +38,75 @@ interface Order {
     tax_amount?: number;
     total_amount: number;
     billing_info: {
-        name: string;
-        email: string;
-        address: string;
-        city: string;
-        postal_code: string;
-        country: string;
+        // Complete PA Insurance Application Data
+        application_type: 'new' | 'renewal';
+        existing_policy_number?: string;
+
+        // Personal Information
+        last_name: string;
+        first_name: string;
+        middle_name?: string;
+        suffix?: string;
+
+        // Address
+        block_lot_phase_floor_unit?: string;
+        street: string;
+        village_subdivision_condo?: string;
+        barangay: string;
+        city_municipality: string;
+        province_state: string;
+        zip_code: string;
+
+        // Contact & Personal Info
+        mobile_no: string;
+        email_address: string;
+        tin_sss_gsis_no?: string;
+        gender: 'male' | 'female';
+        civil_status: 'single' | 'married';
+        date_of_birth: string;
+        place_of_birth: string;
+        citizenship_nationality: string;
+        source_of_funds: 'self_employed' | 'salary';
+
+        // Employment
+        name_of_employer_business?: string;
+        occupation: string;
+        occupational_classification: 'class_1' | 'class_2' | 'class_3' | 'class_4';
+        nature_of_employment_business?: string;
+        employer_business_address?: string;
+
+        // Plan
+        choice_of_plan: 'class_i' | 'class_ii' | 'class_iii';
+
+        // Family Data (for Class II/III)
+        family_members?: Array<{
+            relationship: 'spouse' | 'parent';
+            last_name: string;
+            first_name: string;
+            middle_name?: string;
+            suffix?: string;
+            gender?: 'male' | 'female';
+            date_of_birth: string;
+            occupation_education?: string;
+        }>;
+        children_siblings?: Array<{
+            full_name: string;
+            relationship: 'child' | 'sibling';
+            date_of_birth: string;
+            occupation_education?: string;
+        }>;
+
+        // Agreements
+        agreement_accepted: boolean;
+        data_privacy_consent: boolean;
+
+        // Legacy fields for backward compatibility
+        name?: string;
+        email?: string;
+        address?: string;
+        city?: string;
+        postal_code?: string;
+        country?: string;
     };
     created_at: string;
     completed_at?: string;
@@ -270,123 +333,346 @@ export default function OrderShow({ order }: OrderShowProps) {
                         )}
 
                         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                            {/* Order Items */}
-                            <div className="lg:col-span-2">
-                                <div className="rounded-lg bg-white shadow dark:bg-gray-800">
-                                    <div className="px-4 py-5 sm:px-6">
-                                        <h2 className="text-lg font-medium text-gray-900 dark:text-white">Order Items</h2>
-                                    </div>
-                                    <div className="border-t border-gray-200 dark:border-gray-700">
-                                        <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                                            {order.order_items.map((item) => (
-                                                <li key={item.id} className="px-4 py-6 sm:px-6">
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex-1">
-                                                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">{item.product_name}</h3>
-                                                            {item.store && (
-                                                                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                                                    Sold by {item.store.name}
-                                                                </p>
-                                                            )}
-                                                            <div className="mt-2 flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                                                <span>Qty: {item.quantity}</span>
-                                                                <span className="mx-2">•</span>
-                                                                <span>{formatCurrency(item.product_price * 100)} each</span>
+                            {/* Left Column: Order Items & Payment (1/3) */}
+                            <div className="lg:col-span-1">
+                                <div className="space-y-6">
+                                    {/* Order Items & Summary */}
+                                    <div className="rounded-lg bg-white shadow dark:bg-gray-800">
+                                        <div className="px-4 py-5 sm:px-6">
+                                            <h2 className="text-lg font-medium text-gray-900 dark:text-white">Order Items & Summary</h2>
+                                        </div>
+                                        <div className="border-t border-gray-200 dark:border-gray-700">
+                                            <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                                                {order.order_items.map((item) => (
+                                                    <li key={item.id} className="px-4 py-6 sm:px-6">
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex-1">
+                                                                <h3 className="text-sm font-medium text-gray-900 dark:text-white">{item.product_name}</h3>
+                                                                {item.store && (
+                                                                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                                                        Sold by {item.store.name}
+                                                                    </p>
+                                                                )}
+                                                                <div className="mt-2 flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                                                    <span>Qty: {item.quantity}</span>
+                                                                    <span className="mx-2">•</span>
+                                                                    <span>{formatCurrency(item.product_price * 100)} each</span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                                                {formatCurrency(item.total_price)}
                                                             </div>
                                                         </div>
-                                                        <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                                            {formatCurrency(item.total_price)}
-                                                        </div>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            {/* Order Summary within same box */}
+                                            <div className="border-t border-gray-200 bg-gray-50 px-4 py-5 sm:px-6 dark:border-gray-700 dark:bg-gray-700">
+                                                <dl className="space-y-3">
+                                                    <div className="flex items-center justify-between">
+                                                        <dt className="text-sm text-gray-600 dark:text-gray-400">Subtotal</dt>
+                                                        <dd className="text-sm font-medium text-gray-900 dark:text-white">
+                                                            {formatCurrency(order.subtotal)}
+                                                        </dd>
                                                     </div>
-                                                </li>
-                                            ))}
-                                        </ul>
+                                                    {order.tax_amount && (
+                                                        <div className="flex items-center justify-between">
+                                                            <dt className="text-sm text-gray-600 dark:text-gray-400">Tax</dt>
+                                                            <dd className="text-sm font-medium text-gray-900 dark:text-white">
+                                                                {formatCurrency(order.tax_amount)}
+                                                            </dd>
+                                                        </div>
+                                                    )}
+                                                    <div className="flex items-center justify-between border-t border-gray-200 pt-3 dark:border-gray-700">
+                                                        <dt className="text-base font-medium text-gray-900 dark:text-white">Total</dt>
+                                                        <dd className="text-base font-medium text-gray-900 dark:text-white">
+                                                            {formatCurrency(order.total_amount)}
+                                                        </dd>
+                                                    </div>
+                                                </dl>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Payment Information */}
+                                    {order.payment && (
+                                        <div className="rounded-lg bg-white shadow dark:bg-gray-800">
+                                            <div className="px-4 py-5 sm:px-6">
+                                                <h2 className="text-lg font-medium text-gray-900 dark:text-white">Payment</h2>
+                                            </div>
+                                            <div className="border-t border-gray-200 px-4 py-5 sm:px-6 dark:border-gray-700">
+                                                <dl className="space-y-3">
+                                                    <div className="flex items-center justify-between">
+                                                        <dt className="text-sm text-gray-600 dark:text-gray-400">Status</dt>
+                                                        <dd className={`text-sm font-medium ${getPaymentStatusColor(order.payment.status)}`}>
+                                                            {order.payment.status.charAt(0).toUpperCase() + order.payment.status.slice(1)}
+                                                        </dd>
+                                                    </div>
+                                                    <div className="flex items-center justify-between">
+                                                        <dt className="text-sm text-gray-600 dark:text-gray-400">Amount</dt>
+                                                        <dd className="text-sm font-medium text-gray-900 dark:text-white">
+                                                            {formatCurrencyFromPesos(order.payment.amount)} {order.payment.currency}
+                                                        </dd>
+                                                    </div>
+                                                    {order.payment.magpie_transaction_id && (
+                                                        <div className="flex items-center justify-between">
+                                                            <dt className="text-sm text-gray-600 dark:text-gray-400">Transaction ID</dt>
+                                                            <dd className="font-mono text-sm text-gray-900 dark:text-white">
+                                                                {order.payment.magpie_transaction_id}
+                                                            </dd>
+                                                        </div>
+                                                    )}
+                                                </dl>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Right Column: PA Insurance Application (2/3) */}
+                            <div className="lg:col-span-2">
+                                {/* PA Insurance Application Data */}
+                                <div className="rounded-lg bg-white shadow dark:bg-gray-800">
+                                    <div className="px-4 py-5 sm:px-6">
+                                        <h2 className="text-lg font-medium text-gray-900 dark:text-white">PA Insurance Application</h2>
+                                    </div>
+                                    <div className="border-t border-gray-200 px-4 py-5 sm:px-6 dark:border-gray-700">
+                                        <div className="space-y-6">
+                                            {/* Application Type */}
+                                            <div>
+                                                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Application Type</h3>
+                                                <div className="text-sm text-gray-600 dark:text-gray-400">
+                                                    {order.billing_info.application_type === 'new' ? 'New Application' : 'Renewal Application'}
+                                                    {order.billing_info.existing_policy_number && (
+                                                        <div className="mt-1">Policy Number: {order.billing_info.existing_policy_number}</div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Personal Information */}
+                                            <div>
+                                                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Personal Information</h3>
+                                                <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                                                    <div className="font-medium text-gray-900 dark:text-white">
+                                                        {order.billing_info.first_name} {order.billing_info.middle_name} {order.billing_info.last_name} {order.billing_info.suffix}
+                                                    </div>
+                                                    <div>Gender: {order.billing_info.gender === 'male' ? 'Male' : 'Female'}</div>
+                                                    <div>Civil Status: {order.billing_info.civil_status === 'single' ? 'Single' : 'Married'}</div>
+                                                    <div>Date of Birth: {new Date(order.billing_info.date_of_birth).toLocaleDateString()}</div>
+                                                    <div>Place of Birth: {order.billing_info.place_of_birth}</div>
+                                                    <div>Citizenship: {order.billing_info.citizenship_nationality}</div>
+                                                </div>
+                                            </div>
+
+                                            {/* Contact Information */}
+                                            <div>
+                                                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Contact Information</h3>
+                                                <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                                                    <div>Mobile: {order.billing_info.mobile_no}</div>
+                                                    <div>Email: {order.billing_info.email_address}</div>
+                                                    {order.billing_info.tin_sss_gsis_no && (
+                                                        <div>TIN/SSS/GSIS: {order.billing_info.tin_sss_gsis_no}</div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Address */}
+                                            <div>
+                                                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Address</h3>
+                                                <address className="text-sm text-gray-600 not-italic dark:text-gray-400 space-y-1">
+                                                    {order.billing_info.block_lot_phase_floor_unit && (
+                                                        <div>{order.billing_info.block_lot_phase_floor_unit}</div>
+                                                    )}
+                                                    <div>{order.billing_info.street}</div>
+                                                    {order.billing_info.village_subdivision_condo && (
+                                                        <div>{order.billing_info.village_subdivision_condo}</div>
+                                                    )}
+                                                    <div>{order.billing_info.barangay}</div>
+                                                    <div>{order.billing_info.city_municipality}, {order.billing_info.province_state}</div>
+                                                    <div>{order.billing_info.zip_code}</div>
+                                                </address>
+                                            </div>
+
+                                            {/* Employment Information */}
+                                            <div>
+                                                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Employment Information</h3>
+                                                <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                                                    <div>Occupation: {order.billing_info.occupation}</div>
+                                                    <div>Classification: {order.billing_info.occupational_classification?.replace('_', ' ').toUpperCase()}</div>
+                                                    <div>Source of Funds: {order.billing_info.source_of_funds === 'self_employed' ? 'Self Employed' : 'Salary'}</div>
+                                                    {order.billing_info.name_of_employer_business && (
+                                                        <div>Employer: {order.billing_info.name_of_employer_business}</div>
+                                                    )}
+                                                    {order.billing_info.nature_of_employment_business && (
+                                                        <div>Nature of Business: {order.billing_info.nature_of_employment_business}</div>
+                                                    )}
+                                                    {order.billing_info.employer_business_address && (
+                                                        <div>Employer Address: {order.billing_info.employer_business_address}</div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Insurance Plan */}
+                                            <div>
+                                                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Insurance Plan</h3>
+                                                <div className="text-sm text-gray-600 dark:text-gray-400">
+                                                    <div className="font-medium">
+                                                        {order.billing_info.choice_of_plan === 'class_i' && 'Class I - Principal Insured Only'}
+                                                        {order.billing_info.choice_of_plan === 'class_ii' && 'Class II - Principal + Spouse/Parent'}
+                                                        {order.billing_info.choice_of_plan === 'class_iii' && 'Class III - Principal + Family Members'}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Family Members (Class II/III) */}
+                                            {order.billing_info.family_members && order.billing_info.family_members.length > 0 && (
+                                                <div>
+                                                    <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Family Members</h3>
+                                                    <div className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+                                                        {order.billing_info.family_members.map((member, index) => (
+                                                            <div key={index} className="border-l-2 border-gray-200 pl-3 dark:border-gray-600">
+                                                                <div className="font-medium">
+                                                                    {member.first_name} {member.middle_name} {member.last_name} {member.suffix}
+                                                                </div>
+                                                                <div>Relationship: {member.relationship === 'spouse' ? 'Spouse' : 'Parent'}</div>
+                                                                <div>Date of Birth: {new Date(member.date_of_birth).toLocaleDateString()}</div>
+                                                                {member.gender && <div>Gender: {member.gender === 'male' ? 'Male' : 'Female'}</div>}
+                                                                {member.occupation_education && <div>Occupation: {member.occupation_education}</div>}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Children/Siblings (Class III) */}
+                                            {order.billing_info.children_siblings && order.billing_info.children_siblings.length > 0 && (
+                                                <div>
+                                                    <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Children/Siblings</h3>
+                                                    <div className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+                                                        {order.billing_info.children_siblings.map((child, index) => (
+                                                            <div key={index} className="border-l-2 border-gray-200 pl-3 dark:border-gray-600">
+                                                                <div className="font-medium">{child.full_name}</div>
+                                                                <div>Relationship: {child.relationship === 'child' ? 'Child' : 'Sibling'}</div>
+                                                                <div>Date of Birth: {new Date(child.date_of_birth).toLocaleDateString()}</div>
+                                                                {child.occupation_education && <div>Occupation/Education: {child.occupation_education}</div>}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Legal Agreements */}
+                                            <div>
+                                                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Legal Agreements</h3>
+                                                <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                                                    <div className="flex items-center">
+                                                        <span className="text-green-600 mr-2">✓</span>
+                                                        Terms and Conditions Accepted
+                                                    </div>
+                                                    <div className="flex items-center">
+                                                        <span className="text-green-600 mr-2">✓</span>
+                                                        Data Privacy Consent Given
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Order Summary & Details */}
-                            <div className="space-y-6">
-                                {/* Order Summary */}
-                                <div className="rounded-lg bg-white shadow dark:bg-gray-800">
-                                    <div className="px-4 py-5 sm:px-6">
-                                        <h2 className="text-lg font-medium text-gray-900 dark:text-white">Order Summary</h2>
-                                    </div>
-                                    <div className="border-t border-gray-200 px-4 py-5 sm:px-6 dark:border-gray-700">
-                                        <dl className="space-y-3">
-                                            <div className="flex items-center justify-between">
-                                                <dt className="text-sm text-gray-600 dark:text-gray-400">Subtotal</dt>
-                                                <dd className="text-sm font-medium text-gray-900 dark:text-white">
-                                                    {formatCurrency(order.subtotal)}
-                                                </dd>
-                                            </div>
-                                            {order.tax_amount && (
-                                                <div className="flex items-center justify-between">
-                                                    <dt className="text-sm text-gray-600 dark:text-gray-400">Tax</dt>
-                                                    <dd className="text-sm font-medium text-gray-900 dark:text-white">
-                                                        {formatCurrency(order.tax_amount)}
-                                                    </dd>
-                                                </div>
-                                            )}
-                                            <div className="flex items-center justify-between border-t border-gray-200 pt-3 dark:border-gray-700">
-                                                <dt className="text-base font-medium text-gray-900 dark:text-white">Total</dt>
-                                                <dd className="text-base font-medium text-gray-900 dark:text-white">
-                                                    {formatCurrency(order.total_amount)}
-                                                </dd>
-                                            </div>
-                                        </dl>
-                                    </div>
-                                </div>
-
-                                {/* Payment Information */}
-                                {order.payment && (
+                            {/* Right Column: Order Items & Payment (2/3) */}
+                            <div className="lg:col-span-2">
+                                <div className="space-y-6">
+                                    {/* Order Items & Summary */}
                                     <div className="rounded-lg bg-white shadow dark:bg-gray-800">
                                         <div className="px-4 py-5 sm:px-6">
-                                            <h2 className="text-lg font-medium text-gray-900 dark:text-white">Payment</h2>
+                                            <h2 className="text-lg font-medium text-gray-900 dark:text-white">Order Items & Summary</h2>
                                         </div>
-                                        <div className="border-t border-gray-200 px-4 py-5 sm:px-6 dark:border-gray-700">
-                                            <dl className="space-y-3">
-                                                <div className="flex items-center justify-between">
-                                                    <dt className="text-sm text-gray-600 dark:text-gray-400">Status</dt>
-                                                    <dd className={`text-sm font-medium ${getPaymentStatusColor(order.payment.status)}`}>
-                                                        {order.payment.status.charAt(0).toUpperCase() + order.payment.status.slice(1)}
-                                                    </dd>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <dt className="text-sm text-gray-600 dark:text-gray-400">Amount</dt>
-                                                    <dd className="text-sm font-medium text-gray-900 dark:text-white">
-                                                        {formatCurrencyFromPesos(order.payment.amount)} {order.payment.currency}
-                                                    </dd>
-                                                </div>
-                                                {order.payment.magpie_transaction_id && (
+                                        <div className="border-t border-gray-200 dark:border-gray-700">
+                                            <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                                                {order.order_items.map((item) => (
+                                                    <li key={item.id} className="px-4 py-6 sm:px-6">
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex-1">
+                                                                <h3 className="text-sm font-medium text-gray-900 dark:text-white">{item.product_name}</h3>
+                                                                {item.store && (
+                                                                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                                                        Sold by {item.store.name}
+                                                                    </p>
+                                                                )}
+                                                                <div className="mt-2 flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                                                    <span>Qty: {item.quantity}</span>
+                                                                    <span className="mx-2">•</span>
+                                                                    <span>{formatCurrency(item.product_price * 100)} each</span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                                                {formatCurrency(item.total_price)}
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            {/* Order Summary within same box */}
+                                            <div className="border-t border-gray-200 bg-gray-50 px-4 py-5 sm:px-6 dark:border-gray-700 dark:bg-gray-700">
+                                                <dl className="space-y-3">
                                                     <div className="flex items-center justify-between">
-                                                        <dt className="text-sm text-gray-600 dark:text-gray-400">Transaction ID</dt>
-                                                        <dd className="font-mono text-sm text-gray-900 dark:text-white">
-                                                            {order.payment.magpie_transaction_id}
+                                                        <dt className="text-sm text-gray-600 dark:text-gray-400">Subtotal</dt>
+                                                        <dd className="text-sm font-medium text-gray-900 dark:text-white">
+                                                            {formatCurrency(order.subtotal)}
                                                         </dd>
                                                     </div>
-                                                )}
-                                            </dl>
+                                                    {order.tax_amount && (
+                                                        <div className="flex items-center justify-between">
+                                                            <dt className="text-sm text-gray-600 dark:text-gray-400">Tax</dt>
+                                                            <dd className="text-sm font-medium text-gray-900 dark:text-white">
+                                                                {formatCurrency(order.tax_amount)}
+                                                            </dd>
+                                                        </div>
+                                                    )}
+                                                    <div className="flex items-center justify-between border-t border-gray-200 pt-3 dark:border-gray-700">
+                                                        <dt className="text-base font-medium text-gray-900 dark:text-white">Total</dt>
+                                                        <dd className="text-base font-medium text-gray-900 dark:text-white">
+                                                            {formatCurrency(order.total_amount)}
+                                                        </dd>
+                                                    </div>
+                                                </dl>
+                                            </div>
                                         </div>
                                     </div>
-                                )}
 
-                                {/* Billing Information */}
-                                <div className="rounded-lg bg-white shadow dark:bg-gray-800">
-                                    <div className="px-4 py-5 sm:px-6">
-                                        <h2 className="text-lg font-medium text-gray-900 dark:text-white">Billing Address</h2>
-                                    </div>
-                                    <div className="border-t border-gray-200 px-4 py-5 sm:px-6 dark:border-gray-700">
-                                        <address className="text-sm text-gray-600 not-italic dark:text-gray-400">
-                                            <div className="font-medium text-gray-900 dark:text-white">{order.billing_info.name}</div>
-                                            <div>{order.billing_info.address}</div>
-                                            <div>
-                                                {order.billing_info.city}, {order.billing_info.postal_code}
+                                    {/* Payment Information */}
+                                    {order.payment && (
+                                        <div className="rounded-lg bg-white shadow dark:bg-gray-800">
+                                            <div className="px-4 py-5 sm:px-6">
+                                                <h2 className="text-lg font-medium text-gray-900 dark:text-white">Payment</h2>
                                             </div>
-                                            <div>{order.billing_info.country}</div>
-                                            <div className="mt-2">{order.billing_info.email}</div>
-                                        </address>
-                                    </div>
+                                            <div className="border-t border-gray-200 px-4 py-5 sm:px-6 dark:border-gray-700">
+                                                <dl className="space-y-3">
+                                                    <div className="flex items-center justify-between">
+                                                        <dt className="text-sm text-gray-600 dark:text-gray-400">Status</dt>
+                                                        <dd className={`text-sm font-medium ${getPaymentStatusColor(order.payment.status)}`}>
+                                                            {order.payment.status.charAt(0).toUpperCase() + order.payment.status.slice(1)}
+                                                        </dd>
+                                                    </div>
+                                                    <div className="flex items-center justify-between">
+                                                        <dt className="text-sm text-gray-600 dark:text-gray-400">Amount</dt>
+                                                        <dd className="text-sm font-medium text-gray-900 dark:text-white">
+                                                            {formatCurrencyFromPesos(order.payment.amount)} {order.payment.currency}
+                                                        </dd>
+                                                    </div>
+                                                    {order.payment.magpie_transaction_id && (
+                                                        <div className="flex items-center justify-between">
+                                                            <dt className="text-sm text-gray-600 dark:text-gray-400">Transaction ID</dt>
+                                                            <dd className="font-mono text-sm text-gray-900 dark:text-white">
+                                                                {order.payment.magpie_transaction_id}
+                                                            </dd>
+                                                        </div>
+                                                    )}
+                                                </dl>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
