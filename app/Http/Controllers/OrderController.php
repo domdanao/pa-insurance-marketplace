@@ -70,12 +70,49 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'billing_name' => ['required', 'string', 'max:255'],
-            'billing_email' => ['required', 'email', 'max:255'],
-            'billing_address' => ['required', 'string', 'max:500'],
-            'billing_city' => ['required', 'string', 'max:100'],
-            'billing_postal_code' => ['required', 'string', 'max:20'],
-            'billing_country' => ['required', 'string', 'max:100'],
+            // Application Type
+            'application_type' => ['required', 'in:new,renewal'],
+            'existing_policy_number' => ['required_if:application_type,renewal', 'nullable', 'string', 'max:100'],
+
+            // Applicant's Information - Name
+            'last_name' => ['required', 'string', 'max:100'],
+            'first_name' => ['required', 'string', 'max:100'],
+            'middle_name' => ['nullable', 'string', 'max:100'],
+            'suffix' => ['nullable', 'string', 'max:20'],
+
+            // Mailing Address
+            'block_lot_phase_floor_unit' => ['nullable', 'string', 'max:200'],
+            'street' => ['required', 'string', 'max:200'],
+            'village_subdivision_condo' => ['nullable', 'string', 'max:200'],
+            'barangay' => ['required', 'string', 'max:100'],
+            'city_municipality' => ['required', 'string', 'max:100'],
+            'province_state' => ['required', 'string', 'max:100'],
+            'zip_code' => ['required', 'string', 'max:20'],
+
+            // Contact & Personal Info
+            'mobile_no' => ['required', 'string', 'max:20'],
+            'email_address' => ['required', 'email', 'max:255'],
+            'tin_sss_gsis_no' => ['nullable', 'string', 'max:50'],
+            'gender' => ['required', 'in:male,female'],
+            'civil_status' => ['required', 'in:single,married'],
+            'date_of_birth' => ['required', 'date'],
+            'place_of_birth' => ['required', 'string', 'max:200'],
+            'citizenship_nationality' => ['required', 'string', 'max:100'],
+            'source_of_funds' => ['required', 'in:self_employed,salary'],
+
+            // Employment Information
+            'name_of_employer_business' => ['nullable', 'string', 'max:255'],
+            'occupation' => ['required', 'string', 'max:200'],
+            'occupational_classification' => ['required', 'in:class_1,class_2,class_3,class_4'],
+            'nature_of_employment_business' => ['nullable', 'string', 'max:300'],
+            'employer_business_address' => ['nullable', 'string', 'max:500'],
+
+            // Choice of Plan
+            'choice_of_plan' => ['required', 'in:class_i,class_ii,class_iii'],
+
+            // Agreement and Privacy
+            'agreement_accepted' => ['required', 'accepted'],
+            'data_privacy_consent' => ['required', 'accepted'],
         ]);
 
         $cartItems = Cart::where('user_id', $request->user()->id)
@@ -113,7 +150,7 @@ class OrderController extends Controller
                 return redirect()->route('payment.create-session', ['order' => $recentOrder->id]);
             }
 
-            // Create main order
+            // Create main order with PA insurance application data
             $order = Order::create([
                 'user_id' => $request->user()->id,
                 'order_number' => 'ORD-'.strtoupper(uniqid()),
@@ -121,12 +158,53 @@ class OrderController extends Controller
                 'subtotal' => $totalAmount,
                 'total_amount' => $totalAmount,
                 'billing_info' => [
-                    'name' => $request->billing_name,
-                    'email' => $request->billing_email,
-                    'address' => $request->billing_address,
-                    'city' => $request->billing_city,
-                    'postal_code' => $request->billing_postal_code,
-                    'country' => $request->billing_country,
+                    // Application Type
+                    'application_type' => $request->application_type,
+                    'existing_policy_number' => $request->existing_policy_number,
+
+                    // Applicant's Information - Name
+                    'last_name' => $request->last_name,
+                    'first_name' => $request->first_name,
+                    'middle_name' => $request->middle_name,
+                    'suffix' => $request->suffix,
+
+                    // Mailing Address
+                    'block_lot_phase_floor_unit' => $request->block_lot_phase_floor_unit,
+                    'street' => $request->street,
+                    'village_subdivision_condo' => $request->village_subdivision_condo,
+                    'barangay' => $request->barangay,
+                    'city_municipality' => $request->city_municipality,
+                    'province_state' => $request->province_state,
+                    'zip_code' => $request->zip_code,
+
+                    // Contact & Personal Info
+                    'mobile_no' => $request->mobile_no,
+                    'email_address' => $request->email_address,
+                    'tin_sss_gsis_no' => $request->tin_sss_gsis_no,
+                    'gender' => $request->gender,
+                    'civil_status' => $request->civil_status,
+                    'date_of_birth' => $request->date_of_birth,
+                    'place_of_birth' => $request->place_of_birth,
+                    'citizenship_nationality' => $request->citizenship_nationality,
+                    'source_of_funds' => $request->source_of_funds,
+
+                    // Employment Information
+                    'name_of_employer_business' => $request->name_of_employer_business,
+                    'occupation' => $request->occupation,
+                    'occupational_classification' => $request->occupational_classification,
+                    'nature_of_employment_business' => $request->nature_of_employment_business,
+                    'employer_business_address' => $request->employer_business_address,
+
+                    // Choice of Plan
+                    'choice_of_plan' => $request->choice_of_plan,
+
+                    // Agreement and Privacy
+                    'agreement_accepted' => $request->agreement_accepted,
+                    'data_privacy_consent' => $request->data_privacy_consent,
+
+                    // Keep legacy fields for backward compatibility
+                    'name' => $request->first_name.' '.$request->last_name,
+                    'email' => $request->email_address,
                 ],
             ]);
 
