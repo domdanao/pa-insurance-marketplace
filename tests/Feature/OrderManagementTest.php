@@ -9,13 +9,15 @@ use App\Models\Store;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
 
+require_once __DIR__.'/../Helpers/PAInsuranceHelper.php';
+
 it('prevents guests from accessing cart routes', function () {
     $this->get('/cart')->assertRedirect('/login');
     $this->get('/orders/checkout')->assertRedirect('/login');
     $this->get('/orders')->assertRedirect('/login');
 });
 
-it('validates billing information during checkout', function () {
+it('validates PA insurance information during checkout', function () {
     $buyer = User::factory()->buyer()->create();
     $category = Category::factory()->create();
     $store = Store::factory()->create(['status' => 'approved']);
@@ -33,12 +35,26 @@ it('validates billing information during checkout', function () {
     $this->actingAs($buyer)
         ->post('/orders/checkout', [])
         ->assertSessionHasErrors([
-            'billing_name',
-            'billing_email',
-            'billing_address',
-            'billing_city',
-            'billing_postal_code',
-            'billing_country',
+            'application_type',
+            'last_name',
+            'first_name',
+            'street',
+            'barangay',
+            'city_municipality',
+            'province_state',
+            'zip_code',
+            'mobile_no',
+            'email_address',
+            'gender',
+            'civil_status',
+            'date_of_birth',
+            'place_of_birth',
+            'citizenship_nationality',
+            'source_of_funds',
+            'occupation',
+            'choice_of_plan',
+            'agreement_accepted',
+            'data_privacy_consent',
         ]);
 });
 
@@ -67,14 +83,7 @@ it('generates unique order numbers', function () {
         'status' => 'published',
     ]);
 
-    $orderData = [
-        'billing_name' => 'Test User',
-        'billing_email' => 'test@example.com',
-        'billing_address' => '123 Test St',
-        'billing_city' => 'Test City',
-        'billing_postal_code' => '12345',
-        'billing_country' => 'Test Country',
-    ];
+    $orderData = validPAInsuranceData();
 
     // Create first order
     Cart::factory()->create([
@@ -121,14 +130,7 @@ it('prevents checkout with products that went out of stock', function () {
         'quantity' => 2, // More than available
     ]);
 
-    $orderData = [
-        'billing_name' => 'Test User',
-        'billing_email' => 'test@example.com',
-        'billing_address' => '123 Test St',
-        'billing_city' => 'Test City',
-        'billing_postal_code' => '12345',
-        'billing_country' => 'Test Country',
-    ];
+    $orderData = validPAInsuranceData();
 
     $this->actingAs($buyer)
         ->post('/orders/checkout', $orderData)
@@ -158,14 +160,7 @@ it('prevents checkout when product becomes unpublished', function () {
     // Product becomes unpublished after adding to cart
     $product->update(['status' => 'draft']);
 
-    $orderData = [
-        'billing_name' => 'Test User',
-        'billing_email' => 'test@example.com',
-        'billing_address' => '123 Test St',
-        'billing_city' => 'Test City',
-        'billing_postal_code' => '12345',
-        'billing_country' => 'Test Country',
-    ];
+    $orderData = validPAInsuranceData();
 
     $this->actingAs($buyer)
         ->post('/orders/checkout', $orderData)
@@ -217,14 +212,7 @@ it('handles mixed cart with physical and digital products', function () {
         'quantity' => 1,
     ]);
 
-    $orderData = [
-        'billing_name' => 'Test User',
-        'billing_email' => 'test@example.com',
-        'billing_address' => '123 Test St',
-        'billing_city' => 'Test City',
-        'billing_postal_code' => '12345',
-        'billing_country' => 'Test Country',
-    ];
+    $orderData = validPAInsuranceData();
 
     $this->actingAs($buyer)
         ->post('/orders/checkout', $orderData)
@@ -287,14 +275,7 @@ it('creates separate order items for products from different stores', function (
         'product_id' => $product2->id,
     ]);
 
-    $orderData = [
-        'billing_name' => 'Test User',
-        'billing_email' => 'test@example.com',
-        'billing_address' => '123 Test St',
-        'billing_city' => 'Test City',
-        'billing_postal_code' => '12345',
-        'billing_country' => 'Test Country',
-    ];
+    $orderData = validPAInsuranceData();
 
     $response = $this->actingAs($buyer)
         ->post('/orders/checkout', $orderData);

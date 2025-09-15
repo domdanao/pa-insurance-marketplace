@@ -48,11 +48,6 @@ export default function ProductShow({ product, relatedProducts, auth }: Props) {
     };
 
     const handleAddToCart = () => {
-        if (!auth?.user) {
-            router.visit('/login');
-            return;
-        }
-
         setLoading(true);
         router.post(
             `/cart/add/${product.id}`,

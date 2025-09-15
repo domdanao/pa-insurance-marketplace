@@ -79,7 +79,7 @@ class MagpieService
             'cancel_url' => $data['cancel_url'],
             'success_url' => $data['success_url'],
             'currency' => 'php', // Required field based on Packagist docs
-            'payment_method_types' => ['card', 'qrph', 'paymaya'],
+            'payment_method_types' => ['qrph'],
         ];
 
         // Add line items with correct structure for Magpie
@@ -90,7 +90,7 @@ class MagpieService
                     'amount' => $this->formatAmount($item['amount']), // Convert to centavos
                     'description' => $item['description'],
                     'quantity' => $item['quantity'],
-                    'image' => null, // Optional image field
+                    'image' => $item['image'] ?? null, // Use product image if available
                 ];
             }, $data['line_items']);
         }

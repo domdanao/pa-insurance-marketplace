@@ -87,18 +87,24 @@ export default function MerchantProductCreate({ categories }: Props) {
 
                                 {/* Price */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Price ($) *</label>
-                                    <input
-                                        type="number"
-                                        name="price"
-                                        min="0.01"
-                                        max="999999.99"
-                                        step="0.01"
-                                        required
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                        placeholder="0.00"
-                                    />
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Price (₱) *</label>
+                                    <div className="relative mt-1">
+                                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                            <span className="text-gray-500 dark:text-gray-400">₱</span>
+                                        </div>
+                                        <input
+                                            type="number"
+                                            name="price"
+                                            min="0.01"
+                                            max="999999.99"
+                                            step="0.01"
+                                            required
+                                            className="block w-full rounded-md border-gray-300 pl-8 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                            placeholder="0.00"
+                                        />
+                                    </div>
                                     {errors.price && <div className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.price}</div>}
+                                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Enter price in Philippine Pesos</p>
                                 </div>
 
                                 {/* Digital Product Toggle */}

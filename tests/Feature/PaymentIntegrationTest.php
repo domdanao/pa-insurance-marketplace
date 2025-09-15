@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Services\MagpieService;
 use Illuminate\Support\Facades\Http;
 
+require_once __DIR__.'/../Helpers/PAInsuranceHelper.php';
+
 beforeEach(function () {
     $this->buyer = User::factory()->create(); // Default role is buyer
     $this->merchant = User::factory()->merchant()->create();
@@ -132,12 +134,7 @@ describe('Payment Integration Flow', function () {
 
         $response = $this->actingAs($this->buyer)
             ->post(route('orders.store'), [
-                'billing_name' => 'John Doe',
-                'billing_email' => 'john@example.com',
-                'billing_address' => '123 Main St',
-                'billing_city' => 'Manila',
-                'billing_postal_code' => '1000',
-                'billing_country' => 'Philippines',
+                ...validPAInsuranceData(),
             ]);
 
         // Check response status
@@ -163,12 +160,7 @@ describe('Payment Integration Flow', function () {
 
         $response = $this->actingAs($this->buyer)
             ->post(route('orders.store'), [
-                'billing_name' => 'John Doe',
-                'billing_email' => 'john@example.com',
-                'billing_address' => '123 Main St',
-                'billing_city' => 'Manila',
-                'billing_postal_code' => '1000',
-                'billing_country' => 'Philippines',
+                ...validPAInsuranceData(),
             ]);
 
         $order = Order::where('user_id', $this->buyer->id)->first();
@@ -189,12 +181,7 @@ describe('Payment Integration Flow', function () {
 
         $response = $this->actingAs($this->buyer)
             ->post(route('orders.store'), [
-                'billing_name' => 'John Doe',
-                'billing_email' => 'john@example.com',
-                'billing_address' => '123 Main St',
-                'billing_city' => 'Manila',
-                'billing_postal_code' => '1000',
-                'billing_country' => 'Philippines',
+                ...validPAInsuranceData(),
             ]);
 
         $response->assertRedirect('https://checkout.magpie.im/cs_test123');
@@ -212,12 +199,7 @@ describe('Payment Integration Flow', function () {
 
         $this->actingAs($this->buyer)
             ->post(route('orders.store'), [
-                'billing_name' => 'John Doe',
-                'billing_email' => 'john@example.com',
-                'billing_address' => '123 Main St',
-                'billing_city' => 'Manila',
-                'billing_postal_code' => '1000',
-                'billing_country' => 'Philippines',
+                ...validPAInsuranceData(),
             ]);
 
         expect(Cart::where('user_id', $this->buyer->id)->count())->toBe(0);

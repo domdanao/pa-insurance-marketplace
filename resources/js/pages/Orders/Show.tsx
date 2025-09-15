@@ -152,14 +152,16 @@ export default function OrderShow({ order }: OrderShowProps) {
 
             {/* Toast Notification */}
             {flash?.toast && (
-                <Toast
-                    variant={flash.toast.type === 'warning' ? 'warning' : flash.toast.type}
-                    title={flash.toast.title}
-                    description={flash.toast.message}
-                    visible={showToast}
-                    onClose={() => setShowToast(false)}
-                    duration={6000}
-                />
+                <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+                    <Toast
+                        variant={flash.toast.type === 'warning' ? 'warning' : flash.toast.type}
+                        title={flash.toast.title}
+                        description={flash.toast.message}
+                        visible={showToast}
+                        onClose={() => setShowToast(false)}
+                        duration={6000}
+                    />
+                </div>
             )}
 
             {/* Payment Redirect Loading Modal with Blur */}

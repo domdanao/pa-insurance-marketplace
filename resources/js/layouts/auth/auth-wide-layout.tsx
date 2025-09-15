@@ -12,7 +12,7 @@ interface AuthWideLayoutProps {
 export default function AuthWideLayout({ children, title, description }: PropsWithChildren<AuthWideLayoutProps>) {
     return (
         <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10">
-            <div className="w-full max-w-[90%] md:max-w-[70%] lg:max-w-[40%]">
+            <div className="w-full max-w-[90%] md:w-[40%] md:max-w-7xl">
                 <div className="flex flex-col gap-8">
                     <div className="flex flex-col items-center gap-4">
                         <Link href={home()} className="flex flex-col items-center gap-2 font-medium">

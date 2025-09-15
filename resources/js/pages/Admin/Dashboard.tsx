@@ -1,5 +1,5 @@
 import AdminLayout from '@/layouts/AdminLayout';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 
 interface Stats {
     users: {
@@ -7,6 +7,13 @@ interface Stats {
         merchants: number;
         buyers: number;
         new_this_month: number;
+    };
+    merchants: {
+        total: number;
+        pending: number;
+        approved: number;
+        rejected: number;
+        suspended: number;
     };
     stores: {
         total: number;
@@ -100,6 +107,49 @@ export default function AdminDashboard({ stats }: Props) {
                         </div>
                     </div>
 
+                    {/* Merchants */}
+                    <div className={`overflow-hidden rounded-lg shadow ${stats.merchants?.pending > 0 ? 'bg-orange-50 border-l-4 border-orange-400 dark:bg-orange-900/20 dark:border-orange-500' : 'bg-white dark:bg-gray-800'}`}>
+                        {stats.merchants?.pending > 0 ? (
+                            <Link href="/admin/merchants?status=pending" className="block p-5 hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <span className="text-2xl">🏢</span>
+                                    </div>
+                                    <div className="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Merchant Applications</dt>
+                                            <dd className="text-lg font-semibold text-gray-900 dark:text-white">
+                                                {stats.merchants?.total?.toLocaleString() ?? '0'}
+                                            </dd>
+                                            <dd className="text-sm text-orange-600 dark:text-orange-400 font-medium">
+                                                {stats.merchants?.pending ?? 0} pending approval →
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </Link>
+                        ) : (
+                            <div className="p-5">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <span className="text-2xl">🏢</span>
+                                    </div>
+                                    <div className="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Merchant Applications</dt>
+                                            <dd className="text-lg font-semibold text-gray-900 dark:text-white">
+                                                {stats.merchants?.total?.toLocaleString() ?? '0'}
+                                            </dd>
+                                            <dd className="text-sm text-gray-600 dark:text-gray-400">
+                                                {stats.merchants?.pending ?? 0} pending approval
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                     {/* Stores */}
                     <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
                         <div className="p-5">
@@ -142,34 +192,23 @@ export default function AdminDashboard({ stats }: Props) {
                         </div>
                     </div>
 
-                    {/* Orders */}
-                    <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
-                        <div className="p-5">
-                            <div className="flex items-center">
-                                <div className="flex-shrink-0">
-                                    <span className="text-2xl">📦</span>
-                                </div>
-                                <div className="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Total Orders</dt>
-                                        <dd className="text-lg font-semibold text-gray-900 dark:text-white">
-                                            {stats.orders.total?.toLocaleString() ?? '0'}
-                                        </dd>
-                                        <dd className={`text-sm ${getGrowthColor(stats.orders.growth_percentage ?? 0)}`}>
-                                            {formatGrowth(stats.orders.growth_percentage ?? 0)} this month
-                                        </dd>
-                                    </dl>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     {/* Recent Orders */}
                     <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
                         <div className="px-4 py-5 sm:p-6">
-                            <h3 className="mb-4 text-lg leading-6 font-medium text-gray-900 dark:text-white">Recent Orders</h3>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Recent Orders</h3>
+                                <div className="text-right">
+                                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                                        {stats.orders.total?.toLocaleString() ?? '0'}
+                                    </p>
+                                    <p className={`text-sm ${getGrowthColor(stats.orders.growth_percentage ?? 0)}`}>
+                                        {formatGrowth(stats.orders.growth_percentage ?? 0)} this month
+                                    </p>
+                                </div>
+                            </div>
                             <div className="space-y-3">
                                 {(stats.recent_activities?.orders ?? []).map((order) => (
                                     <div key={order.id} className="flex items-center justify-between">
@@ -192,6 +231,16 @@ export default function AdminDashboard({ stats }: Props) {
                         <div className="px-4 py-5 sm:p-6">
                             <h3 className="mb-4 text-lg leading-6 font-medium text-gray-900 dark:text-white">Platform Health</h3>
                             <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-500 dark:text-gray-400">Pending Merchants</span>
+                                    <span className={`text-sm font-medium ${stats.merchants?.pending > 0 ? 'text-orange-600' : 'text-gray-900 dark:text-white'}`}>
+                                        {stats.merchants?.pending ?? 0}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-500 dark:text-gray-400">Approved Merchants</span>
+                                    <span className="text-sm font-medium text-green-600">{stats.merchants?.approved ?? 0}</span>
+                                </div>
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm text-gray-500 dark:text-gray-400">Payment Success Rate</span>
                                     <span className="text-sm font-medium text-gray-900 dark:text-white">{stats.payments?.success_rate ?? 0}%</span>

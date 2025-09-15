@@ -79,10 +79,12 @@ export default function EditCategory({ category }: Props) {
 
                                         <div>
                                             <div className="flex items-center">
+                                                <input type="hidden" name="is_active" value="0" />
                                                 <input
                                                     type="checkbox"
                                                     id="is_active"
                                                     name="is_active"
+                                                    value="1"
                                                     defaultChecked={category.is_active}
                                                     className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                                 />

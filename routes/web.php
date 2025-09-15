@@ -16,9 +16,10 @@ Route::get('/refresh-session', function () {
     if (request()->expectsJson()) {
         return response()->json([
             'csrf_token' => csrf_token(),
-            'message' => 'Session refreshed successfully'
+            'message' => 'Session refreshed successfully',
         ]);
     }
+
     return redirect()->back()->with('success', 'Session refreshed. You can now continue.');
 })->name('refresh-session');
 
@@ -33,17 +34,23 @@ Route::prefix('stores')->name('stores.')->group(function () {
     Route::get('/{store:slug}', [App\Http\Controllers\StorefrontController::class, 'store'])->name('show');
 });
 
-// Cart routes (authenticated users)
-Route::middleware(['auth'])->group(function () {
-    Route::prefix('cart')->name('cart.')->group(function () {
+// Cart routes
+Route::prefix('cart')->name('cart.')->group(function () {
+    // Allow adding items without authentication (will redirect to login)
+    Route::post('/add/{product}', [App\Http\Controllers\CartController::class, 'add'])->name('add');
+    Route::get('/count', [App\Http\Controllers\CartController::class, 'count'])->name('count');
+
+    // Authenticated cart actions
+    Route::middleware(['auth'])->group(function () {
         Route::get('/', [App\Http\Controllers\CartController::class, 'index'])->name('index');
-        Route::post('/add/{product}', [App\Http\Controllers\CartController::class, 'add'])->name('add');
         Route::put('/{cart}', [App\Http\Controllers\CartController::class, 'update'])->name('update');
         Route::delete('/{cart}', [App\Http\Controllers\CartController::class, 'remove'])->name('remove');
         Route::delete('/', [App\Http\Controllers\CartController::class, 'clear'])->name('clear');
-        Route::get('/count', [App\Http\Controllers\CartController::class, 'count'])->name('count');
     });
+});
 
+// Other authenticated routes
+Route::middleware(['auth'])->group(function () {
     Route::prefix('orders')->name('orders.')->group(function () {
         Route::get('/', [App\Http\Controllers\OrderController::class, 'index'])->name('index');
         Route::get('/checkout', [App\Http\Controllers\OrderController::class, 'checkout'])->name('checkout');
@@ -151,6 +158,7 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     // Document management
     Route::get('/documents', [App\Http\Controllers\Admin\MerchantDocumentController::class, 'index'])->name('documents');
     Route::get('/merchants/{merchant}/documents', [App\Http\Controllers\Admin\MerchantDocumentController::class, 'merchantDocuments'])->name('merchants.documents');
+    Route::post('/merchants/{merchant}/documents/upload', [App\Http\Controllers\Admin\MerchantDocumentController::class, 'upload'])->name('merchants.documents.upload');
     Route::get('/documents/{document}/download', [App\Http\Controllers\Admin\MerchantDocumentController::class, 'download'])->name('documents.download');
     Route::patch('/documents/{document}/approve', [App\Http\Controllers\Admin\MerchantDocumentController::class, 'approve'])->name('documents.approve');
     Route::patch('/documents/{document}/reject', [App\Http\Controllers\Admin\MerchantDocumentController::class, 'reject'])->name('documents.reject');

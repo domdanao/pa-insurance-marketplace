@@ -145,7 +145,7 @@ class AdminDashboardController extends Controller
 
     public function showMerchant(Merchant $merchant)
     {
-        $merchant->load(['user', 'store.products', 'approvedBy']);
+        $merchant->load(['user', 'store.products', 'approvedBy', 'merchantDocuments']);
 
         $merchantStats = [
             'total_products' => $merchant->store ? $merchant->store->products->count() : 0,
@@ -154,10 +154,76 @@ class AdminDashboardController extends Controller
             'orders_received' => $merchant->store ? $merchant->store->orderItems->count() : 0,
         ];
 
+        // Calculate missing requirements
+        $missingRequirements = $this->calculateMissingRequirements($merchant);
+
         return Inertia::render('Admin/Merchants/Show', [
             'merchant' => $merchant,
             'merchantStats' => $merchantStats,
+            'missingRequirements' => $missingRequirements,
         ]);
+    }
+
+    private function calculateMissingRequirements(Merchant $merchant): array
+    {
+        $missing = [
+            'information' => [],
+            'documents' => [],
+        ];
+
+        // Check missing basic information
+        $requiredFields = [
+            'business_name' => 'Business Name',
+            'business_type' => 'Business Type',
+            'tax_id' => 'Tax ID',
+            'phone' => 'Phone Number',
+            'address_line_1' => 'Address',
+            'city' => 'City',
+            'state' => 'State',
+            'postal_code' => 'Postal Code',
+            'country' => 'Country',
+        ];
+
+        foreach ($requiredFields as $field => $label) {
+            if (empty($merchant->{$field})) {
+                $missing['information'][] = $label;
+            }
+        }
+
+        // Check banking information
+        if (empty($merchant->bank_account_holder) || empty($merchant->bank_name) ||
+            empty($merchant->bank_account_number) || empty($merchant->bank_routing_number)) {
+            $missing['information'][] = 'Complete Banking Information';
+        }
+
+        // Check required documents based on business type
+        if ($merchant->business_type) {
+            $requiredDocuments = \App\Models\MerchantDocument::getRequiredDocumentsForBusinessType($merchant->business_type);
+            $submittedDocuments = $merchant->merchantDocuments->pluck('document_type')->toArray();
+            $approvedDocuments = $merchant->merchantDocuments->where('status', 'approved')->pluck('document_type')->toArray();
+
+            foreach ($requiredDocuments as $docType => $docConfig) {
+                if (! in_array($docType, $submittedDocuments)) {
+                    $missing['documents'][] = [
+                        'type' => $docType,
+                        'name' => $docConfig['name'],
+                        'status' => 'not_submitted',
+                        'description' => $docConfig['description'],
+                    ];
+                } elseif (! in_array($docType, $approvedDocuments)) {
+                    $document = $merchant->merchantDocuments->where('document_type', $docType)->first();
+                    $missing['documents'][] = [
+                        'type' => $docType,
+                        'name' => $docConfig['name'],
+                        'status' => $document->status,
+                        'description' => $docConfig['description'],
+                        'rejection_reason' => $document->rejection_reason ?? null,
+                    ];
+                }
+            }
+        }
+
+        return $missing;
     }
 
     public function approveMerchant(Merchant $merchant)
@@ -512,6 +578,13 @@ class AdminDashboardController extends Controller
         $adminCount = User::where('role', 'admin')->count();
         $newUsersThisMonth = User::where('created_at', '>=', $currentMonth)->count();
 
+        // Merchant stats
+        $totalMerchants = Merchant::count();
+        $pendingMerchants = Merchant::where('status', 'pending')->count();
+        $approvedMerchants = Merchant::where('status', 'approved')->count();
+        $rejectedMerchants = Merchant::where('status', 'rejected')->count();
+        $suspendedMerchants = Merchant::where('status', 'suspended')->count();
+
         // Store stats
         $totalStores = Store::count();
         $activeStores = Store::where('status', 'approved')->count();
@@ -581,6 +654,13 @@ class AdminDashboardController extends Controller
                 'buyers' => $buyersCount,
                 'admins' => $adminCount,
                 'new_this_month' => $newUsersThisMonth,
+            ],
+            'merchants' => [
+                'total' => $totalMerchants,
+                'pending' => $pendingMerchants,
+                'approved' => $approvedMerchants,
+                'rejected' => $rejectedMerchants,
+                'suspended' => $suspendedMerchants,
             ],
             'stores' => [
                 'total' => $totalStores,
@@ -805,7 +885,7 @@ class AdminDashboardController extends Controller
             $referencedImages = Product::whereNotNull('images')
                 ->get()
                 ->flatMap(fn ($product) => $product->images ?? [])
-                ->map(fn ($url) => str_replace(Storage::disk('public')->url(''), '', $url))
+                ->map(fn ($url) => str_replace(Storage::url(''), '', $url))
                 ->toArray();
 
             $referencedFiles = Product::whereNotNull('digital_files')

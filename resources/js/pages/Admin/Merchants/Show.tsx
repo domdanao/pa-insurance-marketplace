@@ -1,6 +1,7 @@
 import AdminLayout from '@/layouts/AdminLayout';
 import { User } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
+import DocumentUpload from '@/components/DocumentUpload';
 
 interface Merchant {
     id: string;
@@ -37,12 +38,24 @@ interface MerchantStats {
     orders_received: number;
 }
 
+interface MissingRequirements {
+    information: string[];
+    documents: {
+        type: string;
+        name: string;
+        status: string;
+        description: string;
+        rejection_reason?: string;
+    }[];
+}
+
 interface Props {
     merchant: Merchant;
     merchantStats: MerchantStats;
+    missingRequirements: MissingRequirements;
 }
 
-export default function MerchantShow({ merchant, merchantStats }: Props) {
+export default function MerchantShow({ merchant, merchantStats, missingRequirements }: Props) {
     const getStatusBadge = (status: string) => {
         const colors = {
             pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
@@ -145,6 +158,110 @@ export default function MerchantShow({ merchant, merchantStats }: Props) {
                         </div>
                     )}
                 </div>
+
+                {/* Missing Requirements - Show if merchant has missing items */}
+                {missingRequirements && (missingRequirements.information.length > 0 || missingRequirements.documents.length > 0) && (
+                    <div className="rounded-lg bg-orange-50 border border-orange-200 p-6 shadow dark:bg-orange-900/20 dark:border-orange-800">
+                        <div className="flex items-start">
+                            <div className="flex-shrink-0">
+                                <span className="text-2xl">⚠️</span>
+                            </div>
+                            <div className="ml-4 flex-1">
+                                <h3 className="text-lg font-medium text-orange-800 dark:text-orange-200">
+                                    {merchant.status === 'pending' ? 'Missing Requirements for Approval' : 'Incomplete Requirements'}
+                                </h3>
+                                <p className="mt-1 text-sm text-orange-700 dark:text-orange-300">
+                                    {merchant.status === 'pending'
+                                        ? 'The following information and documents are required before this merchant can be approved:'
+                                        : 'The following information and documents are incomplete or missing:'
+                                    }
+                                </p>
+
+                                {/* Missing Information */}
+                                {missingRequirements.information.length > 0 && (
+                                    <div className="mt-4">
+                                        <h4 className="text-sm font-semibold text-orange-800 dark:text-orange-200">Missing Information:</h4>
+                                        <div className="mt-2 flex items-center justify-between">
+                                            <ul className="space-y-1 flex-1">
+                                                {missingRequirements.information.map((item, index) => (
+                                                    <li key={index} className="flex items-center text-sm text-orange-700 dark:text-orange-300">
+                                                        <span className="mr-2">•</span>
+                                                        {item}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            <div className="ml-4">
+                                                <button
+                                                    onClick={() => {
+                                                        // Simple implementation - you could create a proper edit modal
+                                                        window.location.href = `/admin/merchants/${merchant.id}/edit`;
+                                                    }}
+                                                    className="inline-flex items-center px-3 py-1 border border-orange-300 rounded-md text-xs font-medium text-orange-700 bg-white hover:bg-orange-50 dark:bg-gray-800 dark:text-orange-300 dark:border-orange-600 dark:hover:bg-orange-900/20"
+                                                >
+                                                    Edit Info
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Missing Documents */}
+                                {missingRequirements.documents.length > 0 && (
+                                    <div className="mt-4">
+                                        <h4 className="text-sm font-semibold text-orange-800 dark:text-orange-200">Document Issues:</h4>
+                                        <div className="mt-3 space-y-4">
+                                            {missingRequirements.documents.map((doc, index) => (
+                                                <div key={index} className="border border-orange-200 dark:border-orange-700 rounded-lg p-4 bg-white dark:bg-gray-800">
+                                                    <div className="flex items-start justify-between">
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="font-medium text-orange-800 dark:text-orange-200">
+                                                                    {doc.name}
+                                                                </span>
+                                                                <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                                                                    doc.status === 'not_submitted'
+                                                                        ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+                                                                        : doc.status === 'pending'
+                                                                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
+                                                                        : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+                                                                }`}>
+                                                                    {doc.status === 'not_submitted' ? 'Not Submitted' : doc.status}
+                                                                </span>
+                                                            </div>
+                                                            <p className="mt-1 text-xs text-orange-600 dark:text-orange-400">
+                                                                {doc.description}
+                                                            </p>
+                                                            {doc.rejection_reason && (
+                                                                <p className="mt-2 text-xs text-red-600 dark:text-red-400">
+                                                                    <strong>Rejection reason:</strong> {doc.rejection_reason}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                        <div className="ml-4 flex-shrink-0">
+                                                            <DocumentUpload
+                                                                merchantId={merchant.id}
+                                                                documentType={doc.type}
+                                                                documentName={doc.name}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="mt-4">
+                                            <Link
+                                                href={`/admin/merchants/${merchant.id}/documents`}
+                                                className="inline-flex items-center text-sm text-orange-700 hover:text-orange-600 dark:text-orange-300 dark:hover:text-orange-200"
+                                            >
+                                                View & Manage All Documents →
+                                            </Link>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Business Statistics */}
                 <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">

@@ -102,11 +102,11 @@ export default function StorefrontLayout({ children, header }: StorefrontLayoutP
                                     >
                                         Sign In
                                     </Link>
-                                    <Link 
-                                        href="/register" 
+                                    <Link
+                                        href="/register?role=merchant"
                                         className="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 text-sm font-medium rounded-md"
                                     >
-                                        Sign Up
+                                        Sell Here
                                     </Link>
                                 </>
                             )}

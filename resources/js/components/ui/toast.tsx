@@ -4,15 +4,15 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const toastVariants = cva(
-  "fixed top-4 right-4 z-50 w-full max-w-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4 transition-all duration-300 ease-in-out transform",
+  "w-full max-w-sm bg-white/95 dark:bg-gray-800/95 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4 transition-all duration-700 ease-in-out transform backdrop-blur-sm",
   {
     variants: {
       variant: {
         default: "border-gray-200 dark:border-gray-700",
-        success: "border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20",
-        error: "border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20",
-        warning: "border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20",
-        info: "border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20",
+        success: "border-green-200 dark:border-green-800 bg-green-50/95 dark:bg-green-900/95",
+        error: "border-red-200 dark:border-red-800 bg-red-50/95 dark:bg-red-900/95",
+        warning: "border-yellow-200 dark:border-yellow-800 bg-yellow-50/95 dark:bg-yellow-900/95",
+        info: "border-blue-200 dark:border-blue-800 bg-blue-50/95 dark:bg-blue-900/95",
       },
     },
     defaultVariants: {
@@ -39,17 +39,32 @@ export function Toast({
   visible,
   ...props
 }: ToastProps) {
-  const [isVisible, setIsVisible] = useState(visible);
+  const [isVisible, setIsVisible] = useState(false);
+  const [shouldRender, setShouldRender] = useState(visible);
 
   useEffect(() => {
-    setIsVisible(visible);
+    if (visible) {
+      setShouldRender(true);
+      // Small delay to ensure smooth appearance
+      const timer = setTimeout(() => {
+        setIsVisible(true);
+      }, 50);
+      return () => clearTimeout(timer);
+    } else {
+      setIsVisible(false);
+      // Wait for animation to complete before removing from DOM
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+      }, 700);
+      return () => clearTimeout(timer);
+    }
   }, [visible]);
 
   useEffect(() => {
     if (isVisible && duration > 0) {
       const timer = setTimeout(() => {
         setIsVisible(false);
-        onClose?.();
+        setTimeout(() => onClose?.(), 700); // Wait for animation to complete
       }, duration);
 
       return () => clearTimeout(timer);
@@ -58,7 +73,7 @@ export function Toast({
 
   const handleClose = () => {
     setIsVisible(false);
-    onClose?.();
+    setTimeout(() => onClose?.(), 700); // Wait for animation to complete
   };
 
   const getIcon = () => {
@@ -107,13 +122,13 @@ export function Toast({
     }
   };
 
-  if (!isVisible) return null;
+  if (!shouldRender) return null;
 
   return (
     <div
       className={cn(
         toastVariants({ variant }),
-        isVisible ? "translate-x-0 opacity-100" : "translate-x-full opacity-0",
+        isVisible ? "translate-y-0 opacity-100 scale-100" : "-translate-y-8 opacity-0 scale-95",
         className
       )}
       {...props}
@@ -161,7 +176,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
   return (
     <>
       {children}
-      <div id="toast-container" className="fixed top-4 right-4 z-50 space-y-2" />
+      <div id="toast-container" className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 space-y-2" />
     </>
   );
 }

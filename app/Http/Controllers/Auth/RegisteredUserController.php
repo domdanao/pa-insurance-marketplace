@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Events\MerchantApplicationSubmitted;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
@@ -20,20 +21,14 @@ class RegisteredUserController extends Controller
      */
     public function create(Request $request): Response
     {
-        $role = $request->query('role', 'buyer');
+        $role = $request->query('role', 'merchant');
 
-        // Validate role parameter
-        if (!in_array($role, ['buyer', 'merchant'])) {
-            $role = 'buyer';
+        // Only allow merchant registration - buyers register during checkout
+        if ($role !== 'merchant') {
+            return redirect()->route('login')->with('info', 'Buyer accounts are created automatically during checkout. Please browse products and proceed to checkout to create your account.');
         }
 
-        if ($role === 'merchant') {
-            return Inertia::render('auth/register-merchant');
-        }
-
-        return Inertia::render('auth/register', [
-            'role' => $role
-        ]);
+        return Inertia::render('auth/register-merchant');
     }
 
     /**
@@ -43,37 +38,58 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $role = $request->input('role', 'buyer');
+        $role = $request->input('role', 'merchant');
 
-        if ($role === 'merchant') {
-            return $this->storeMerchant($request);
+        // Only allow merchant registration - buyers register during checkout
+        if ($role !== 'merchant') {
+            return redirect()->route('login')->with('error', 'Buyer registration is not available. Accounts are created automatically during checkout.');
         }
 
-        return $this->storeBuyer($request);
+        return $this->storeMerchant($request);
     }
 
     /**
-     * Handle buyer registration.
+     * Create buyer account during checkout with OTP verification.
+     * This method should be called from the checkout process.
+     */
+    public static function createBuyerForCheckout(string $email, ?string $name = null, array $demographicData = []): User
+    {
+        // Check if user already exists
+        $existingUser = User::where('email', $email)->first();
+        if ($existingUser) {
+            return $existingUser;
+        }
+
+        // Create new buyer with minimal required data
+        $user = User::create([
+            'name' => $name ?: explode('@', $email)[0], // Use email prefix if no name provided
+            'email' => $email,
+            'password' => null, // Passwordless
+            'role' => 'buyer',
+            'email_verified_at' => now(), // Auto-verify since they used OTP for checkout
+        ]);
+
+        // Store demographic data if provided
+        if (! empty($demographicData)) {
+            // You can store this in a separate profile table or user meta
+            // For now, we'll just trigger the Registered event
+        }
+
+        event(new Registered($user));
+
+        // Transfer any pending cart items from session to user's cart
+        \App\Services\CartTransferService::transferPendingCart($user);
+
+        return $user;
+    }
+
+    /**
+     * Handle buyer registration - DEPRECATED.
+     * Buyers are now created during checkout flow.
      */
     private function storeBuyer(Request $request): RedirectResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => 'buyer',
-        ]);
-
-        event(new Registered($user));
-        Auth::login($user);
-
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->route('login')->with('error', 'Buyer registration is not available. Accounts are created automatically during checkout.');
     }
 
     /**
@@ -81,7 +97,12 @@ class RegisteredUserController extends Controller
      */
     private function storeMerchant(Request $request): RedirectResponse
     {
-        // Basic user validation
+        // Check if this is a submission from draft
+        if ($request->has('submit_from_draft')) {
+            return $this->storeMerchantFromDraft($request);
+        }
+
+        // Basic user validation for direct submission
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
@@ -142,7 +163,7 @@ class RegisteredUserController extends Controller
         ]);
 
         // Create merchant profile with pending status
-        $user->merchant()->create([
+        $merchant = $user->merchant()->create([
             'business_name' => $request->business_name,
             'business_type' => $request->business_type,
             'tax_id' => $request->tax_id,
@@ -166,7 +187,99 @@ class RegisteredUserController extends Controller
         ]);
 
         event(new Registered($user));
+        event(new MerchantApplicationSubmitted($user, $merchant));
         Auth::login($user);
+
+        // Transfer any pending cart items from session to user's cart
+        \App\Services\CartTransferService::transferPendingCart($user);
+
+        return redirect()->route('merchant.dashboard')->with('success',
+            'Merchant application submitted successfully! Your application is under review.');
+    }
+
+    /**
+     * Handle merchant registration from draft data.
+     */
+    private function storeMerchantFromDraft(Request $request): RedirectResponse
+    {
+        // Validate minimal required fields
+        $request->validate([
+            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'bank_account_holder' => 'required|string|max:255',
+            'bank_account_number' => 'required|string|max:50',
+            'bank_routing_number' => 'required|string|max:50',
+            'bank_name' => 'required|string|max:255',
+        ]);
+
+        // Find the draft registration
+        $draft = \App\Models\DraftRegistration::where('email', $request->email)
+            ->where('email_verified', true)
+            ->first();
+
+        if (! $draft) {
+            return back()->withErrors(['email' => 'Draft registration not found or email not verified.']);
+        }
+
+        // Validate that draft has all required data
+        $formData = $draft->form_data ?? [];
+        $bankingInfo = $draft->banking_info ?? [];
+        $officers = $draft->officers ?? [];
+        $beneficialOwners = $draft->beneficial_owners ?? [];
+
+        if (empty($formData['name']) || empty($formData['business_name']) || empty($officers) || empty($beneficialOwners)) {
+            return back()->withErrors(['form' => 'Draft registration is incomplete. Please complete all steps first.']);
+        }
+
+        // Create user account using data from draft
+        $user = User::create([
+            'name' => $formData['name'],
+            'email' => $draft->email,
+            'password' => null, // Passwordless
+            'role' => 'merchant',
+            'email_verified_at' => now(), // Auto-verify since they used OTP
+        ]);
+
+        // Merge banking info from form with banking info from draft
+        $completeBankingInfo = array_merge($bankingInfo, [
+            'bank_account_holder' => $request->bank_account_holder,
+            'bank_account_number' => $request->bank_account_number,
+            'bank_routing_number' => $request->bank_routing_number,
+            'bank_name' => $request->bank_name,
+        ]);
+
+        // Create merchant profile using draft data
+        $merchant = $user->merchant()->create([
+            'business_name' => $formData['business_name'],
+            'business_type' => $formData['business_type'] ?? 'corporation',
+            'tax_id' => $formData['tax_id'],
+            'business_description' => $formData['business_description'],
+            'phone' => $formData['phone'],
+            'website' => $formData['website'] ?? null,
+            'address_line_1' => $formData['address_line_1'],
+            'address_line_2' => $formData['address_line_2'] ?? null,
+            'city' => $formData['city'],
+            'state' => $formData['state'],
+            'postal_code' => $formData['postal_code'],
+            'country' => $formData['country'] ?? 'Philippines',
+            'bank_account_holder' => $completeBankingInfo['bank_account_holder'],
+            'bank_account_number' => $completeBankingInfo['bank_account_number'],
+            'bank_routing_number' => $completeBankingInfo['bank_routing_number'],
+            'bank_name' => $completeBankingInfo['bank_name'],
+            'officers' => $officers,
+            'beneficial_owners' => $beneficialOwners,
+            'status' => 'pending',
+            'documents' => [], // Will be populated by document uploads
+        ]);
+
+        // Clean up the draft
+        $draft->delete();
+
+        event(new Registered($user));
+        event(new MerchantApplicationSubmitted($user, $merchant));
+        Auth::login($user);
+
+        // Transfer any pending cart items from session to user's cart
+        \App\Services\CartTransferService::transferPendingCart($user);
 
         return redirect()->route('merchant.dashboard')->with('success',
             'Merchant application submitted successfully! Your application is under review.');

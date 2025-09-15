@@ -5,9 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Merchant;
 use App\Models\MerchantDocument;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -41,12 +40,12 @@ class MerchantDocumentController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('document_name', 'like', "%{$search}%")
-                  ->orWhereHas('merchant.user', function ($q) use ($search) {
-                      $q->where('name', 'like', "%{$search}%");
-                  })
-                  ->orWhereHas('merchant', function ($q) use ($search) {
-                      $q->where('business_name', 'like', "%{$search}%");
-                  });
+                    ->orWhereHas('merchant.user', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('merchant', function ($q) use ($search) {
+                        $q->where('business_name', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -76,7 +75,7 @@ class MerchantDocumentController extends Controller
             'user',
             'merchantDocuments.reviewedBy',
             'approvedBy',
-            'lastReviewedBy'
+            'lastReviewedBy',
         ]);
 
         $documents = $merchant->merchantDocuments()
@@ -196,8 +195,60 @@ class MerchantDocumentController extends Controller
         }
 
         return response()->json([
-            'message' => count($documents) . ' documents approved successfully',
+            'message' => count($documents).' documents approved successfully',
         ]);
+    }
+
+    /**
+     * Upload a document for a merchant (admin-assisted onboarding)
+     */
+    public function upload(Request $request, Merchant $merchant): JsonResponse
+    {
+        $request->validate([
+            'document' => 'required|file|max:10240|mimes:pdf,doc,docx,jpg,jpeg,png',
+            'document_type' => 'required|string|in:'.implode(',', array_keys(MerchantDocument::getDocumentTypes())),
+            'document_name' => 'required|string|max:255',
+        ]);
+
+        try {
+            $file = $request->file('document');
+            $documentType = $request->document_type;
+            $documentName = $request->document_name;
+
+            // Generate unique filename
+            $filename = time().'_'.$merchant->id.'_'.$documentType.'.'.$file->getClientOriginalExtension();
+            $path = $file->storeAs('merchant-documents', $filename, 'private');
+
+            // Create document record
+            $document = MerchantDocument::create([
+                'merchant_id' => $merchant->id,
+                'document_type' => $documentType,
+                'document_name' => $documentName,
+                'file_name' => $file->getClientOriginalName(),
+                'file_path' => $path,
+                'file_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
+                'file_hash' => hash_file('sha256', $file->getPathname()),
+                'status' => 'pending',
+                'is_required' => true,
+                'metadata' => [
+                    'uploaded_by_admin' => auth()->id(),
+                    'uploaded_at' => now()->toISOString(),
+                ],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Document uploaded successfully',
+                'document' => $document,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to upload document: '.$e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -243,20 +294,20 @@ class MerchantDocumentController extends Controller
 
         $allRequiredApproved = true;
         foreach (array_keys($requiredDocuments) as $type) {
-            if (!$merchantDocuments->has($type)) {
+            if (! $merchantDocuments->has($type)) {
                 $allRequiredApproved = false;
                 break;
             }
         }
 
-        if ($allRequiredApproved && !$merchant->kyb_completed) {
+        if ($allRequiredApproved && ! $merchant->kyb_completed) {
             $merchant->update([
                 'kyb_completed' => true,
                 'kyb_completed_at' => now(),
                 'last_reviewed_at' => now(),
                 'last_reviewed_by' => auth()->id(),
             ]);
-        } elseif (!$allRequiredApproved && $merchant->kyb_completed) {
+        } elseif (! $allRequiredApproved && $merchant->kyb_completed) {
             $merchant->update([
                 'kyb_completed' => false,
                 'kyb_completed_at' => null,

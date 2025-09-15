@@ -1,0 +1,295 @@
+                                <MultiStepForm
+                                    steps={steps}
+                                    currentStep={currentStep}
+                                    onStepChange={goToStep}
+                                    canProceedToStep={canProceedToStep}
+                                >
+                                    <form onSubmit={handleSubmit} className="space-y-6">
+                                        {/* Step 1: Application Type */}
+                                        {currentStep === 1 && (
+                                            <div>
+                                                <h3 className="mb-4 text-lg font-medium text-gray-900 dark:text-white">Application Type</h3>
+                                                <div className="flex items-center gap-6 mb-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <input
+                                                            type="radio"
+                                                            id="new"
+                                                            name="application_type"
+                                                            value="new"
+                                                            checked={data.application_type === 'new'}
+                                                            onChange={(e) => setData('application_type', e.target.value)}
+                                                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                                                        />
+                                                        <label htmlFor="new" className="text-sm font-medium">New Application</label>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <input
+                                                            type="radio"
+                                                            id="renewal"
+                                                            name="application_type"
+                                                            value="renewal"
+                                                            checked={data.application_type === 'renewal'}
+                                                            onChange={(e) => setData('application_type', e.target.value)}
+                                                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                                                        />
+                                                        <label htmlFor="renewal" className="text-sm font-medium">Policy Renewal</label>
+                                                    </div>
+                                                </div>
+
+                                                {data.application_type === 'renewal' && (
+                                                    <div>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Existing Policy Number *</label>
+                                                        <input
+                                                            type="text"
+                                                            value={data.existing_policy_number}
+                                                            onChange={(e) => setData('existing_policy_number', e.target.value)}
+                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                                            placeholder="Enter your existing policy number"
+                                                            required
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Step 2: Personal Information */}
+                                        {currentStep === 2 && (
+                                            <div>
+                                                <h3 className="mb-4 text-lg font-medium text-gray-900 dark:text-white">Personal Information</h3>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                                                    <div>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Last Name *</label>
+                                                        <input
+                                                            type="text"
+                                                            value={data.last_name}
+                                                            onChange={(e) => setData('last_name', e.target.value)}
+                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                                            required
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">First Name *</label>
+                                                        <input
+                                                            type="text"
+                                                            value={data.first_name}
+                                                            onChange={(e) => setData('first_name', e.target.value)}
+                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                                            required
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Middle Name</label>
+                                                        <input
+                                                            type="text"
+                                                            value={data.middle_name}
+                                                            onChange={(e) => setData('middle_name', e.target.value)}
+                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Suffix</label>
+                                                        <input
+                                                            type="text"
+                                                            value={data.suffix}
+                                                            onChange={(e) => setData('suffix', e.target.value)}
+                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                                            placeholder="Jr., Sr., III"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                                    <div>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Mobile Number *</label>
+                                                        <input
+                                                            type="tel"
+                                                            value={data.mobile_no}
+                                                            onChange={(e) => setData('mobile_no', e.target.value)}
+                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                                            placeholder="09XX XXX XXXX"
+                                                            required
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Email Address *</label>
+                                                        <input
+                                                            type="email"
+                                                            value={data.email_address}
+                                                            onChange={(e) => setData('email_address', e.target.value)}
+                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                                            required
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">TIN/SSS/GSIS Number</label>
+                                                        <input
+                                                            type="text"
+                                                            value={data.tin_sss_gsis_no}
+                                                            onChange={(e) => setData('tin_sss_gsis_no', e.target.value)}
+                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                                            placeholder="XXX-XXX-XXX-XXX"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                                    <div>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Gender *</label>
+                                                        <div className="flex gap-4 mt-2">
+                                                            <label className="flex items-center">
+                                                                <input
+                                                                    type="radio"
+                                                                    name="gender"
+                                                                    value="male"
+                                                                    checked={data.gender === 'male'}
+                                                                    onChange={(e) => setData('gender', e.target.value)}
+                                                                    className="mr-2 h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                                                                    required
+                                                                />
+                                                                <span className="text-sm">Male</span>
+                                                            </label>
+                                                            <label className="flex items-center">
+                                                                <input
+                                                                    type="radio"
+                                                                    name="gender"
+                                                                    value="female"
+                                                                    checked={data.gender === 'female'}
+                                                                    onChange={(e) => setData('gender', e.target.value)}
+                                                                    className="mr-2 h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                                                                    required
+                                                                />
+                                                                <span className="text-sm">Female</span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Civil Status *</label>
+                                                        <div className="flex gap-4 mt-2">
+                                                            <label className="flex items-center">
+                                                                <input
+                                                                    type="radio"
+                                                                    name="civil_status"
+                                                                    value="single"
+                                                                    checked={data.civil_status === 'single'}
+                                                                    onChange={(e) => setData('civil_status', e.target.value)}
+                                                                    className="mr-2 h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                                                                    required
+                                                                />
+                                                                <span className="text-sm">Single</span>
+                                                            </label>
+                                                            <label className="flex items-center">
+                                                                <input
+                                                                    type="radio"
+                                                                    name="civil_status"
+                                                                    value="married"
+                                                                    checked={data.civil_status === 'married'}
+                                                                    onChange={(e) => setData('civil_status', e.target.value)}
+                                                                    className="mr-2 h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                                                                    required
+                                                                />
+                                                                <span className="text-sm">Married</span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Date of Birth *</label>
+                                                        <input
+                                                            type="date"
+                                                            value={data.date_of_birth}
+                                                            onChange={(e) => setData('date_of_birth', e.target.value)}
+                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                                            required
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Place of Birth *</label>
+                                                        <input
+                                                            type="text"
+                                                            value={data.place_of_birth}
+                                                            onChange={(e) => setData('place_of_birth', e.target.value)}
+                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                                            required
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                                    <div>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Nationality</label>
+                                                        <div className="relative">
+                                                            <input
+                                                                type="text"
+                                                                value="Filipino"
+                                                                readOnly
+                                                                className="w-full rounded-md border border-gray-300 px-3 py-2 pl-10 shadow-sm bg-gray-50 text-gray-700 cursor-not-allowed dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
+                                                            />
+                                                            <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                                                                🇵🇭
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Source of Funds *</label>
+                                                        <div className="flex gap-4 mt-2">
+                                                            <label className="flex items-center">
+                                                                <input
+                                                                    type="radio"
+                                                                    name="source_of_funds"
+                                                                    value="self_employed"
+                                                                    checked={data.source_of_funds === 'self_employed'}
+                                                                    onChange={(e) => setData('source_of_funds', e.target.value)}
+                                                                    className="mr-2 h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                                                                    required
+                                                                />
+                                                                <span className="text-sm">Self-Employed</span>
+                                                            </label>
+                                                            <label className="flex items-center">
+                                                                <input
+                                                                    type="radio"
+                                                                    name="source_of_funds"
+                                                                    value="salary"
+                                                                    checked={data.source_of_funds === 'salary'}
+                                                                    onChange={(e) => setData('source_of_funds', e.target.value)}
+                                                                    className="mr-2 h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                                                                    required
+                                                                />
+                                                                <span className="text-sm">Salary</span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Navigation Buttons */}
+                                        <div className="flex justify-between pt-6">
+                                            <button
+                                                type="button"
+                                                onClick={prevStep}
+                                                disabled={currentStep === 1}
+                                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+                                            >
+                                                Previous
+                                            </button>
+
+                                            <button
+                                                type="submit"
+                                                disabled={processing || isRedirecting || (currentStep < steps.length && !validateStep(currentStep))}
+                                                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                {processing
+                                                    ? 'Processing...'
+                                                    : currentStep === steps.length
+                                                    ? `Submit Application & Pay ${formattedTotal || '₱0.00'}`
+                                                    : 'Next'
+                                                }
+                                            </button>
+                                        </div>
+
+                                        {currentStep === steps.length && (
+                                            <p className="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
+                                                Your application will be reviewed and policy will be issued upon payment confirmation.
+                                            </p>
+                                        )}
+                                    </form>
+                                </MultiStepForm>

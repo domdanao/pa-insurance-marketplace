@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Cart;
 use App\Models\Product;
+use App\Services\CartTransferService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class CartController extends Controller
@@ -38,6 +40,25 @@ class CartController extends Controller
 
         if (! $product->digital_product && $product->quantity < $request->quantity) {
             return back()->with('error', 'Not enough stock available.');
+        }
+
+        // Handle anonymous users by storing in session
+        if (! $request->user()) {
+            CartTransferService::addToSessionCart($product->id, $request->quantity);
+
+            // Store the intended URL so user returns to the product page after login
+            $request->session()->put('url.intended', url()->previous());
+
+            // Debug logging
+            Log::info('CartController: Anonymous user added product to session cart', [
+                'product_id' => $product->id,
+                'quantity' => $request->quantity,
+                'session_cart' => session('pending_cart_items'),
+                'intended_url' => session('url.intended'),
+                'session_id' => session()->getId(),
+            ]);
+
+            return redirect()->route('login')->with('info', 'Please log in to complete your purchase. Your cart will be saved!');
         }
 
         $cartItem = Cart::where('user_id', $request->user()->id)
@@ -98,6 +119,13 @@ class CartController extends Controller
 
     public function count(Request $request)
     {
+        if (! $request->user()) {
+            // Return session cart count for anonymous users
+            $count = CartTransferService::getPendingCartCount();
+
+            return response()->json(['count' => $count]);
+        }
+
         $count = Cart::where('user_id', $request->user()->id)->sum('quantity');
 
         return response()->json(['count' => $count]);
