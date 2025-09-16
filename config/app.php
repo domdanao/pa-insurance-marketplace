@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel Marketplace'),
+    'name' => env('APP_NAME', 'Marketplace'),
 
     /*
     |--------------------------------------------------------------------------

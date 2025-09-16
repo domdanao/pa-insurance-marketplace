@@ -11,7 +11,7 @@ return [
     |
     */
 
-    'name' => env('MARKETPLACE_NAME', 'Laravel Marketplace Template'),
+    'name' => env('MARKETPLACE_NAME', 'Marketplace Template'),
     'version' => '1.0.0',
     'description' => 'A comprehensive Laravel marketplace template for e-commerce applications',
 
@@ -54,6 +54,19 @@ return [
         'analytics_dashboard' => env('FEATURE_ANALYTICS_DASHBOARD', true),
         'email_notifications' => env('FEATURE_EMAIL_NOTIFICATIONS', true),
         'sms_notifications' => env('FEATURE_SMS_NOTIFICATIONS', false),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Display Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure how products and stores are displayed across the platform.
+    |
+    */
+
+    'display' => [
+        'card_layout' => env('DISPLAY_CARD_LAYOUT', 'vertical'), // 'vertical' or 'horizontal'
     ],
 
     /*

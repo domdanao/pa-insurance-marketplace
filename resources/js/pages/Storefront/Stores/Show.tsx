@@ -36,15 +36,76 @@ interface Store {
 interface Props {
     store: Store;
     products: PaginatedProducts;
+    cardLayout?: 'vertical' | 'horizontal';
 }
 
-export default function StorefrontStoreShow({ store, products }: Props) {
+export default function StorefrontStoreShow({ store, products, cardLayout = 'vertical' }: Props) {
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-PH', {
             style: 'currency',
             currency: 'PHP',
         }).format(amount);
     };
+
+    const renderVerticalCard = (product: Product) => (
+        <div key={product.id} className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+            <div className="aspect-square bg-gray-200 dark:bg-gray-700">
+                {product.images && product.images.length > 0 ? (
+                    <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" />
+                ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                        <span className="text-gray-400">No Image</span>
+                    </div>
+                )}
+            </div>
+            <div className="p-4">
+                <h3 className="mb-2 line-clamp-2 font-semibold text-gray-900 dark:text-white">{product.name}</h3>
+                <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">{product.category.name}</p>
+                <p className="mb-3 line-clamp-2 text-sm text-gray-500 dark:text-gray-400">{product.description}</p>
+                <div className="flex items-center justify-between">
+                    <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(product.price)}</span>
+                    <Link
+                        href={`/products/${product.slug}`}
+                        className="rounded-md bg-indigo-600 px-3 py-1 text-sm text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+                    >
+                        View
+                    </Link>
+                </div>
+            </div>
+        </div>
+    );
+
+    const renderHorizontalCard = (product: Product) => (
+        <div key={product.id} className="overflow-hidden rounded-lg bg-white shadow transition-shadow hover:shadow-lg dark:bg-gray-800">
+            <div className="flex">
+                <div className="w-1/2 flex-shrink-0 bg-gray-200 p-3 dark:bg-gray-700">
+                    {product.images && product.images.length > 0 ? (
+                        <img src={product.images[0]} alt={product.name} className="h-full w-full rounded-md object-cover" />
+                    ) : (
+                        <div className="flex h-full w-full items-center justify-center rounded-md bg-gray-100 dark:bg-gray-600">
+                            <span className="text-sm text-gray-400">No Image</span>
+                        </div>
+                    )}
+                </div>
+                <div className="flex flex-1 flex-col px-5 pt-5 pb-5">
+                    <div className="mb-6 flex-1 space-y-2">
+                        <h3 className="line-clamp-2 text-lg font-bold text-gray-900 dark:text-white">{product.name}</h3>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{product.category.name}</p>
+                        <p className="line-clamp-2 text-sm text-gray-500 dark:text-gray-400">{product.description}</p>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(product.price)}</span>
+                        <Link
+                            href={`/products/${product.slug}`}
+                            className="flex-shrink-0 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+                        >
+                            Details
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 
     return (
         <StorefrontLayout>
@@ -86,43 +147,19 @@ export default function StorefrontStoreShow({ store, products }: Props) {
                     <div className="mb-6 flex items-center justify-between">
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Products ({products.total})</h2>
                         <Link href="/stores" className="font-medium text-indigo-600 hover:text-indigo-800">
-                            ← Browse All Stores
+                            ← Browse All Providers
                         </Link>
                     </div>
 
                     {products.data.length > 0 ? (
                         <>
                             {/* Products Grid */}
-                            <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                                {products.data.map((product) => (
-                                    <div key={product.id} className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
-                                        <div className="aspect-square bg-gray-200 dark:bg-gray-700">
-                                            {product.images && product.images.length > 0 ? (
-                                                <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" />
-                                            ) : (
-                                                <div className="flex h-full w-full items-center justify-center">
-                                                    <span className="text-gray-400">No Image</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="p-4">
-                                            <h3 className="mb-2 line-clamp-2 font-semibold text-gray-900 dark:text-white">{product.name}</h3>
-                                            <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">{product.category.name}</p>
-                                            <p className="mb-3 line-clamp-2 text-sm text-gray-500 dark:text-gray-400">{product.description}</p>
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
-                                                    {formatCurrency(product.price)}
-                                                </span>
-                                                <Link
-                                                    href={`/products/${product.slug}`}
-                                                    className="rounded-md bg-indigo-600 px-3 py-1 text-sm text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
-                                                >
-                                                    View
-                                                </Link>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
+                            <div
+                                className={`mb-8 grid grid-cols-1 gap-6 ${cardLayout === 'horizontal' ? 'sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3' : 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}
+                            >
+                                {products.data.map((product) =>
+                                    cardLayout === 'horizontal' ? renderHorizontalCard(product) : renderVerticalCard(product),
+                                )}
                             </div>
 
                             {/* Pagination */}

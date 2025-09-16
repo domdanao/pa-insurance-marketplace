@@ -72,6 +72,7 @@ class StorefrontController extends Controller
                 'digital_only' => $request->boolean('digital_only'),
                 'sort' => $request->sort ?? 'newest',
             ],
+            'cardLayout' => config('store-settings.display.card_layout', 'vertical'),
         ]);
     }
 
@@ -112,6 +113,7 @@ class StorefrontController extends Controller
         return Inertia::render('Storefront/Stores/Show', [
             'store' => $store,
             'products' => $products,
+            'cardLayout' => config('store-settings.display.card_layout', 'vertical'),
         ]);
     }
 

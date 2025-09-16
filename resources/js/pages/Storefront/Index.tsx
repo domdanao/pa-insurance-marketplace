@@ -57,21 +57,19 @@ export default function StorefrontIndex({ featuredProducts, popularStores, categ
                 <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
                     <div className="text-center">
                         <h1 className="mb-4 text-4xl font-bold md:text-6xl">Welcome to Our Marketplace</h1>
-                        <p className="mx-auto mb-8 max-w-3xl text-xl md:text-2xl">
-                            Discover amazing products from local merchants. Shop with confidence and support small businesses.
-                        </p>
+                        <p className="mx-auto mb-8 max-w-3xl text-xl md:text-2xl">Shop with confidence and support small businesses.</p>
                         <div className="flex flex-col justify-center gap-4 sm:flex-row">
                             <Link
                                 href="/products"
                                 className="rounded-lg bg-white px-8 py-3 font-semibold text-indigo-600 transition-colors hover:bg-gray-100"
                             >
-                                Browse Products
+                                Shop Now
                             </Link>
                             <Link
                                 href="/stores"
                                 className="rounded-lg border-2 border-white px-8 py-3 font-semibold text-white transition-colors hover:bg-white hover:text-indigo-600"
                             >
-                                Explore Stores
+                                Explore Providers
                             </Link>
                         </div>
                     </div>
@@ -204,7 +202,7 @@ export default function StorefrontIndex({ featuredProducts, popularStores, categ
                             href="/stores"
                             className="rounded-lg bg-indigo-600 px-6 py-3 font-medium text-white transition-colors hover:bg-indigo-700"
                         >
-                            View All Stores
+                            View All Providers
                         </Link>
                     </div>
                 </div>

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class FileUploadService
@@ -14,11 +15,36 @@ class FileUploadService
     public function uploadProductImages(array $images, string $storeId): array
     {
         $uploadedImages = [];
+        $errors = [];
 
         foreach ($images as $image) {
-            if ($image instanceof UploadedFile) {
-                $uploadedImages[] = $this->uploadProductImage($image, $storeId);
+            if (!($image instanceof UploadedFile)) {
+                $errors[] = 'Invalid file provided';
+                continue;
             }
+
+            if (!$this->validateImageFile($image)) {
+                $errors[] = "Invalid image file: {$image->getClientOriginalName()}";
+                continue;
+            }
+
+            try {
+                $uploadedImages[] = $this->uploadProductImage($image, $storeId);
+            } catch (\Exception $e) {
+                $errors[] = "Failed to upload {$image->getClientOriginalName()}: {$e->getMessage()}";
+            }
+        }
+
+        if (!empty($errors) && empty($uploadedImages)) {
+            throw new \Exception('All image uploads failed: ' . implode(', ', $errors));
+        }
+
+        if (!empty($errors)) {
+            Log::warning('Some images failed to upload', [
+                'store_id' => $storeId,
+                'errors' => $errors,
+                'successful_uploads' => count($uploadedImages)
+            ]);
         }
 
         return $uploadedImages;
@@ -29,17 +55,52 @@ class FileUploadService
      */
     public function uploadProductImage(UploadedFile $image, string $storeId): string
     {
-        // Generate unique filename
-        $filename = Str::uuid().'.'.$image->getClientOriginalExtension();
-        $path = "products/{$storeId}/{$filename}";
+        // Validate the image
+        if (!$this->validateImageFile($image)) {
+            throw new \Exception('Invalid image file: ' . $image->getClientOriginalName());
+        }
 
-        // Create directory if it doesn't exist
-        Storage::disk('public')->makeDirectory("products/{$storeId}");
+        // Generate unique filename with proper extension
+        $extension = $image->getClientOriginalExtension();
+        if (empty($extension)) {
+            $extension = $image->guessExtension() ?? 'jpg';
+        }
+        
+        $filename = Str::uuid() . '.' . strtolower($extension);
+        $directory = "products/{$storeId}";
 
-        // Store the original image (we'll skip image resizing for now since Intervention Image may not be installed)
-        $storedPath = Storage::disk('public')->putFileAs("products/{$storeId}", $image, $filename);
+        try {
+            // Create directory if it doesn't exist
+            Storage::disk('public')->makeDirectory($directory);
 
-        return Storage::disk('public')->url($storedPath);
+            // Store the original image
+            $storedPath = Storage::disk('public')->putFileAs($directory, $image, $filename);
+
+            if (!$storedPath) {
+                throw new \Exception('Failed to store image file');
+            }
+
+            $url = asset('storage/' . $storedPath);
+            
+            Log::info('Image uploaded successfully', [
+                'store_id' => $storeId,
+                'filename' => $filename,
+                'original_name' => $image->getClientOriginalName(),
+                'size' => $image->getSize(),
+                'url' => $url
+            ]);
+
+            return $url;
+        } catch (\Exception $e) {
+            Log::error('Failed to upload image', [
+                'store_id' => $storeId,
+                'filename' => $filename,
+                'original_name' => $image->getClientOriginalName(),
+                'error' => $e->getMessage()
+            ]);
+            
+            throw new \Exception('Failed to upload image: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -86,7 +147,11 @@ class FileUploadService
     public function deleteProductImage(string $imageUrl): void
     {
         // Extract path from URL
-        $path = str_replace(Storage::disk('public')->url(''), '', $imageUrl);
+        // Extract path from URL by removing the storage URL prefix
+        $storageUrl = asset('storage/');
+        $path = str_replace($storageUrl, '', $imageUrl);
+        // Remove leading slash if present
+        $path = ltrim($path, '/');
 
         // Delete main image
         if (Storage::disk('public')->exists($path)) {

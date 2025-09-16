@@ -61,31 +61,31 @@ export default function ProductShow({ product, relatedProducts }: Props) {
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 {/* Breadcrumb */}
                 <nav className="mb-8">
-                    <ol className="flex items-center space-x-2 text-sm text-gray-500">
+                    <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
                         <li>
-                            <Link href="/" className="hover:text-gray-900">
+                            <Link href="/" className="hover:text-foreground">
                                 Home
                             </Link>
                         </li>
                         <li>/</li>
                         <li>
-                            <Link href={`/?category=${product.category.slug}`} className="hover:text-gray-900">
+                            <Link href={`/?category=${product.category.slug}`} className="hover:text-foreground">
                                 {product.category.name}
                             </Link>
                         </li>
                         <li>/</li>
-                        <li className="text-gray-900">{product.name}</li>
+                        <li className="text-foreground">{product.name}</li>
                     </ol>
                 </nav>
 
                 <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
                     {/* Product Image */}
-                    <div className="aspect-square w-full overflow-hidden rounded-lg bg-gray-100">
+                    <div className="aspect-square w-full overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
                         {product.images && product.images.length > 0 ? (
                             <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" />
                         ) : (
                             <div className="flex h-full w-full items-center justify-center">
-                                <svg className="h-24 w-24 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="h-24 w-24 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
@@ -100,20 +100,23 @@ export default function ProductShow({ product, relatedProducts }: Props) {
                     {/* Product Info */}
                     <div>
                         <div className="mb-4">
-                            <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
-                            <p className="text-2xl font-semibold text-indigo-600">{formatPrice(product.price)}</p>
+                            <h1 className="text-3xl font-bold text-foreground">{product.name}</h1>
+                            <p className="text-2xl font-semibold text-indigo-600 dark:text-indigo-400">{formatPrice(product.price)}</p>
                         </div>
 
                         <div className="mb-6">
-                            <h3 className="mb-2 text-sm font-medium text-gray-900">Description</h3>
-                            <p className="text-gray-700">{product.description}</p>
+                            <h3 className="mb-2 text-sm font-medium text-foreground">Description</h3>
+                            <p className="text-muted-foreground">{product.description}</p>
                         </div>
 
                         <div className="mb-6">
-                            <div className="flex items-center space-x-4 text-sm text-gray-500">
+                            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                                 <span>
                                     Store:
-                                    <Link href={`/stores/${product.store.slug}`} className="ml-1 text-indigo-600 hover:text-indigo-500">
+                                    <Link
+                                        href={`/stores/${product.store.slug}`}
+                                        className="ml-1 text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                    >
                                         {product.store.name}
                                     </Link>
                                 </span>
@@ -122,7 +125,9 @@ export default function ProductShow({ product, relatedProducts }: Props) {
                                 {product.digital_product && (
                                     <>
                                         <span>•</span>
-                                        <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800">Digital Product</span>
+                                        <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                            Digital Product
+                                        </span>
                                     </>
                                 )}
                             </div>
@@ -161,11 +166,11 @@ export default function ProductShow({ product, relatedProducts }: Props) {
                 {/* Related Products */}
                 {relatedProducts.length > 0 && (
                     <div className="mt-12">
-                        <h2 className="mb-6 text-2xl font-bold text-gray-900">Related Products</h2>
+                        <h2 className="mb-6 text-2xl font-bold text-foreground">Related Products</h2>
                         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                             {relatedProducts.map((relatedProduct) => (
                                 <Link key={relatedProduct.id} href={`/products/${relatedProduct.slug}`} className="group">
-                                    <div className="aspect-square w-full overflow-hidden rounded-lg bg-gray-100">
+                                    <div className="aspect-square w-full overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
                                         {relatedProduct.images && relatedProduct.images.length > 0 ? (
                                             <img
                                                 src={relatedProduct.images[0]}
@@ -174,7 +179,12 @@ export default function ProductShow({ product, relatedProducts }: Props) {
                                             />
                                         ) : (
                                             <div className="flex h-full w-full items-center justify-center">
-                                                <svg className="h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <svg
+                                                    className="h-12 w-12 text-gray-300 dark:text-gray-600"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
                                                     <path
                                                         strokeLinecap="round"
                                                         strokeLinejoin="round"
@@ -186,8 +196,10 @@ export default function ProductShow({ product, relatedProducts }: Props) {
                                         )}
                                     </div>
                                     <div className="mt-4">
-                                        <h3 className="text-sm font-medium text-gray-900 group-hover:text-indigo-600">{relatedProduct.name}</h3>
-                                        <p className="mt-1 text-sm font-semibold text-gray-900">{formatPrice(relatedProduct.price)}</p>
+                                        <h3 className="text-sm font-medium text-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                                            {relatedProduct.name}
+                                        </h3>
+                                        <p className="mt-1 text-sm font-semibold text-foreground">{formatPrice(relatedProduct.price)}</p>
                                     </div>
                                 </Link>
                             ))}

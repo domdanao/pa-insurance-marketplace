@@ -55,6 +55,9 @@ Route::middleware('auth')->group(function () {
         ->middleware('throttle:6,1')
         ->name('password.confirm.store');
 
+    Route::get('logout-now', [AuthenticatedSessionController::class, 'destroy'])
+        ->name('logout.now');
+
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
 });

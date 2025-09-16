@@ -273,6 +273,7 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                     data.last_name &&
                     data.mobile_no &&
                     data.email_address &&
+                    data.tin_sss_gsis_no &&
                     data.gender &&
                     data.civil_status &&
                     data.date_of_birth &&
@@ -285,6 +286,7 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                     last_name: data.last_name,
                     mobile_no: data.mobile_no,
                     email_address: data.email_address,
+                    tin_sss_gsis_no: data.tin_sss_gsis_no,
                     gender: data.gender,
                     civil_status: data.civil_status,
                     date_of_birth: data.date_of_birth,
@@ -897,7 +899,7 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                     </div>
                                                     <div>
                                                         <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                            TIN/SSS/GSIS Number
+                                                            TIN/SSS/GSIS Number *
                                                         </label>
                                                         <input
                                                             type="text"
@@ -905,6 +907,7 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                             onChange={(e) => setData('tin_sss_gsis_no', e.target.value)}
                                                             className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                                             placeholder="XXX-XXX-XXX-XXX"
+                                                            required
                                                         />
                                                     </div>
                                                 </div>

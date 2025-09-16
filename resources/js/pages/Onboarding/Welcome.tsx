@@ -51,7 +51,7 @@ export default function OnboardingWelcome() {
                                     Browse our marketplace and discover amazing products from verified sellers.
                                 </p>
                                 <Link href="/products" className="text-sm text-indigo-600 hover:underline dark:text-indigo-400">
-                                    Browse Products →
+                                    Shop Now →
                                 </Link>
                             </div>
                         </div>

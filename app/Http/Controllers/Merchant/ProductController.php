@@ -68,7 +68,7 @@ class ProductController extends Controller
 
     public function create()
     {
-        $user = auth()->user();
+        $user = request()->user();
         $store = $user->store;
 
         if (! $store || ! $store->isApproved()) {
@@ -188,13 +188,54 @@ class ProductController extends Controller
 
     public function uploadImages(UploadProductImagesRequest $request, FileUploadService $fileUploadService)
     {
-        $store = $request->user()->store;
+        $user = $request->user();
+        $store = $user->store;
+
+        // Additional validation
+        if (!$store) {
+            Log::warning('Image upload attempted without store', ['user_id' => $user->id]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Store not found. Please create a store first.',
+            ], 400);
+        }
+
+        if (!$store->isApproved()) {
+            Log::warning('Image upload attempted with unapproved store', [
+                'user_id' => $user->id,
+                'store_id' => $store->id,
+                'store_status' => $store->status
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Your store must be approved before you can upload images.',
+            ], 403);
+        }
+
+        $images = $request->file('images');
+        if (!$images || !is_array($images)) {
+            Log::warning('No images provided in upload request', ['user_id' => $user->id]);
+            return response()->json([
+                'success' => false,
+                'message' => 'No images provided.',
+            ], 400);
+        }
+
+        Log::info('Image upload started', [
+            'user_id' => $user->id,
+            'store_id' => $store->id,
+            'image_count' => count($images)
+        ]);
 
         try {
-            $uploadedImages = $fileUploadService->uploadProductImages(
-                $request->file('images'),
-                $store->id
-            );
+            $uploadedImages = $fileUploadService->uploadProductImages($images, $store->id);
+
+            Log::info('Images uploaded successfully', [
+                'user_id' => $user->id,
+                'store_id' => $store->id,
+                'uploaded_count' => count($uploadedImages),
+                'images' => $uploadedImages
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -202,9 +243,16 @@ class ProductController extends Controller
                 'images' => $uploadedImages,
             ]);
         } catch (\Exception $e) {
+            Log::error('Image upload failed', [
+                'user_id' => $user->id,
+                'store_id' => $store->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to upload images: '.$e->getMessage(),
+                'message' => 'Failed to upload images: ' . $e->getMessage(),
             ], 500);
         }
     }

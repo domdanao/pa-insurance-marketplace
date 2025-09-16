@@ -114,9 +114,11 @@ export default function CartIndex({ cartItems, cartTotal, cartCount, formattedTo
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Shopping Cart</h1>
-                        <p className="mt-2 text-gray-600 dark:text-gray-400">
-                            {cartCount} {cartCount === 1 ? 'item' : 'items'} in your cart
-                        </p>
+                        {cartCount > 0 && (
+                            <p className="mt-2 text-gray-600 dark:text-gray-400">
+                                {cartCount} {cartCount === 1 ? 'item' : 'items'} in your cart
+                            </p>
+                        )}
                     </div>
                     <button
                         onClick={clearCart}
@@ -241,7 +243,7 @@ export default function CartIndex({ cartItems, cartTotal, cartCount, formattedTo
                             <div className="space-y-3">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-gray-600 dark:text-gray-400">
-                                        Subtotal ({cartCount} {cartCount === 1 ? 'item' : 'items'})
+                                        {cartCount > 0 ? `Subtotal (${cartCount} ${cartCount === 1 ? 'item' : 'items'})` : 'Subtotal'}
                                     </span>
                                     <span className="font-medium text-gray-900 dark:text-white">{formattedTotal}</span>
                                 </div>
@@ -309,8 +311,9 @@ export default function CartIndex({ cartItems, cartTotal, cartCount, formattedTo
                         <div className="ml-4">
                             <h3 className="text-lg font-medium text-gray-900 dark:text-white">Clear Cart</h3>
                             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                Are you sure you want to clear your cart? This action will remove all {cartCount} {cartCount === 1 ? 'item' : 'items'}{' '}
-                                from your cart and cannot be undone.
+                                {cartCount > 0
+                                    ? `Are you sure you want to clear your cart? This action will remove all ${cartCount} ${cartCount === 1 ? 'item' : 'items'} from your cart and cannot be undone.`
+                                    : 'Are you sure you want to clear your cart? This action cannot be undone.'}
                             </p>
                         </div>
                     </div>
