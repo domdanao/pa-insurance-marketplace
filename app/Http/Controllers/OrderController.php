@@ -9,6 +9,7 @@ use App\Models\OrderItem;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class OrderController extends Controller
@@ -87,7 +88,16 @@ class OrderController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        // Add logging to see what's being submitted
+        Log::info('Order submission received', [
+            'user_id' => $request->user()->id,
+            'request_data' => $request->all(),
+            'current_step' => $request->get('current_step', 'not_provided'),
+            'choice_of_plan' => $request->get('choice_of_plan', 'not_provided'),
+        ]);
+
+        try {
+            $request->validate([
             // Application Type
             'application_type' => ['required', 'in:new,renewal'],
             'existing_policy_number' => ['required_if:application_type,renewal', 'nullable', 'string', 'max:100'],
@@ -156,6 +166,15 @@ class OrderController extends Controller
                 'children_siblings.*.date_of_birth' => ['required', 'date'],
                 'children_siblings.*.occupation_education' => ['nullable', 'string', 'max:200'],
             ]);
+        }
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Order validation failed', [
+                'user_id' => $request->user()->id,
+                'errors' => $e->errors(),
+                'request_data' => $request->all(),
+            ]);
+            throw $e;
         }
 
         $cartItems = Cart::where('user_id', $request->user()->id)

@@ -215,7 +215,7 @@ export default function OrderShow({ order }: OrderShowProps) {
 
             {/* Toast Notification */}
             {flash?.toast && (
-                <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+                <div className="fixed top-4 left-1/2 z-50 -translate-x-1/2 transform">
                     <Toast
                         variant={flash.toast.type === 'warning' ? 'warning' : flash.toast.type}
                         title={flash.toast.title}
@@ -347,7 +347,9 @@ export default function OrderShow({ order }: OrderShowProps) {
                                                     <li key={item.id} className="px-4 py-6 sm:px-6">
                                                         <div className="flex items-center justify-between">
                                                             <div className="flex-1">
-                                                                <h3 className="text-sm font-medium text-gray-900 dark:text-white">{item.product_name}</h3>
+                                                                <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                                                                    {item.product_name}
+                                                                </h3>
                                                                 {item.store && (
                                                                     <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                                                                         Sold by {item.store.name}
@@ -433,246 +435,453 @@ export default function OrderShow({ order }: OrderShowProps) {
                             <div className="lg:col-span-2">
                                 {/* PA Insurance Application Data */}
                                 <div className="rounded-lg bg-white shadow dark:bg-gray-800">
-                                    <div className="px-4 py-5 sm:px-6">
-                                        <h2 className="text-lg font-medium text-gray-900 dark:text-white">PA Insurance Application</h2>
-                                    </div>
-                                    <div className="border-t border-gray-200 px-4 py-5 sm:px-6 dark:border-gray-700">
-                                        <div className="space-y-6">
-                                            {/* Application Type */}
-                                            <div>
-                                                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Application Type</h3>
-                                                <div className="text-sm text-gray-600 dark:text-gray-400">
-                                                    {order.billing_info.application_type === 'new' ? 'New Application' : 'Renewal Application'}
-                                                    {order.billing_info.existing_policy_number && (
-                                                        <div className="mt-1">Policy Number: {order.billing_info.existing_policy_number}</div>
-                                                    )}
+                                    <div className="border-b border-gray-200 px-4 py-5 sm:px-6 dark:border-gray-700">
+                                        <div className="flex items-center">
+                                            <div className="flex-shrink-0">
+                                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900">
+                                                    <svg
+                                                        className="h-5 w-5 text-indigo-600 dark:text-indigo-400"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                                        />
+                                                    </svg>
                                                 </div>
                                             </div>
+                                            <div className="ml-3">
+                                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">PA Insurance Application</h2>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                                    Complete application details and coverage information
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                            {/* Personal Information */}
-                                            <div>
-                                                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Personal Information</h3>
-                                                <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                                                    <div className="font-medium text-gray-900 dark:text-white">
-                                                        {order.billing_info.first_name} {order.billing_info.middle_name} {order.billing_info.last_name} {order.billing_info.suffix}
+                                    <div className="px-4 py-6 sm:px-6">
+                                        {/* Application Type & Plan - Featured Section */}
+                                        <div className="mb-8 rounded-lg border border-indigo-100 bg-gradient-to-r from-indigo-50 to-blue-50 p-6 dark:border-indigo-800 dark:from-indigo-900/20 dark:to-blue-900/20">
+                                            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                                <div>
+                                                    <h3 className="mb-3 flex items-center text-sm font-semibold text-indigo-900 dark:text-indigo-100">
+                                                        <span className="mr-2 h-2 w-2 rounded-full bg-indigo-500"></span>
+                                                        Application Type
+                                                    </h3>
+                                                    <div className="rounded-md bg-white p-3 shadow-sm dark:bg-gray-800">
+                                                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                                            {order.billing_info.application_type === 'new'
+                                                                ? 'New Application'
+                                                                : 'Renewal Application'}
+                                                        </div>
+                                                        {order.billing_info.existing_policy_number &&
+                                                            order.billing_info.existing_policy_number !== 'null' && (
+                                                                <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                                    Policy: {order.billing_info.existing_policy_number}
+                                                                </div>
+                                                            )}
                                                     </div>
-                                                    <div>Gender: {order.billing_info.gender === 'male' ? 'Male' : 'Female'}</div>
-                                                    <div>Civil Status: {order.billing_info.civil_status === 'single' ? 'Single' : 'Married'}</div>
-                                                    <div>Date of Birth: {new Date(order.billing_info.date_of_birth).toLocaleDateString()}</div>
-                                                    <div>Place of Birth: {order.billing_info.place_of_birth}</div>
-                                                    <div>Citizenship: {order.billing_info.citizenship_nationality}</div>
+                                                </div>
+                                                <div>
+                                                    <h3 className="mb-3 flex items-center text-sm font-semibold text-indigo-900 dark:text-indigo-100">
+                                                        <span className="mr-2 h-2 w-2 rounded-full bg-indigo-500"></span>
+                                                        Insurance Plan
+                                                    </h3>
+                                                    <div className="rounded-md bg-white p-3 shadow-sm dark:bg-gray-800">
+                                                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                                            {order.billing_info.choice_of_plan === 'class_i' && 'Class I - Principal Insured Only'}
+                                                            {order.billing_info.choice_of_plan === 'class_ii' &&
+                                                                'Class II - Principal + Spouse/Parent'}
+                                                            {order.billing_info.choice_of_plan === 'class_iii' &&
+                                                                'Class III - Principal + Family Members'}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Main Information Grid */}
+                                        <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                                            {/* Personal Information */}
+                                            <div className="rounded-lg border border-gray-200 bg-gray-50 p-5 dark:border-gray-600 dark:bg-gray-700/50">
+                                                <h3 className="mb-4 flex items-center text-sm font-semibold text-gray-900 dark:text-white">
+                                                    <svg className="mr-2 h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                                        />
+                                                    </svg>
+                                                    Personal Information
+                                                </h3>
+                                                <div className="space-y-3">
+                                                    <div className="rounded-md bg-white p-3 shadow-sm dark:bg-gray-800">
+                                                        <div className="mb-1 text-sm font-medium text-gray-900 dark:text-white">Full Name</div>
+                                                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                                                            {order.billing_info.first_name}{' '}
+                                                            {order.billing_info.middle_name && order.billing_info.middle_name !== 'null'
+                                                                ? order.billing_info.middle_name + ' '
+                                                                : ''}
+                                                            {order.billing_info.last_name}
+                                                            {order.billing_info.suffix && order.billing_info.suffix !== 'null'
+                                                                ? ' ' + order.billing_info.suffix
+                                                                : ''}
+                                                        </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div className="rounded-md bg-white p-3 shadow-sm dark:bg-gray-800">
+                                                            <div className="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">Gender</div>
+                                                            <div className="text-sm text-gray-900 dark:text-white">
+                                                                {order.billing_info.gender === 'male' ? 'Male' : 'Female'}
+                                                            </div>
+                                                        </div>
+                                                        <div className="rounded-md bg-white p-3 shadow-sm dark:bg-gray-800">
+                                                            <div className="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+                                                                Civil Status
+                                                            </div>
+                                                            <div className="text-sm text-gray-900 dark:text-white">
+                                                                {order.billing_info.civil_status === 'single' ? 'Single' : 'Married'}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div className="rounded-md bg-white p-3 shadow-sm dark:bg-gray-800">
+                                                            <div className="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">Birthdate</div>
+                                                            <div className="text-sm text-gray-900 dark:text-white">
+                                                                {new Date(order.billing_info.date_of_birth).toLocaleDateString()}
+                                                            </div>
+                                                        </div>
+                                                        <div className="rounded-md bg-white p-3 shadow-sm dark:bg-gray-800">
+                                                            <div className="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+                                                                Place of Birth
+                                                            </div>
+                                                            <div className="text-sm text-gray-900 dark:text-white">
+                                                                {order.billing_info.place_of_birth}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="rounded-md bg-white p-3 shadow-sm dark:bg-gray-800">
+                                                        <div className="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">Citizenship</div>
+                                                        <div className="text-sm text-gray-900 dark:text-white">
+                                                            {order.billing_info.citizenship_nationality}
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
 
                                             {/* Contact Information */}
-                                            <div>
-                                                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Contact Information</h3>
-                                                <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                                                    <div>Mobile: {order.billing_info.mobile_no}</div>
-                                                    <div>Email: {order.billing_info.email_address}</div>
+                                            <div className="rounded-lg border border-gray-200 bg-gray-50 p-5 dark:border-gray-600 dark:bg-gray-700/50">
+                                                <h3 className="mb-4 flex items-center text-sm font-semibold text-gray-900 dark:text-white">
+                                                    <svg className="mr-2 h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                                                        />
+                                                    </svg>
+                                                    Contact Information
+                                                </h3>
+                                                <div className="space-y-3">
+                                                    <div className="rounded-md bg-white p-3 shadow-sm dark:bg-gray-800">
+                                                        <div className="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">Mobile Number</div>
+                                                        <div className="text-sm text-gray-900 dark:text-white">{order.billing_info.mobile_no}</div>
+                                                    </div>
+                                                    <div className="rounded-md bg-white p-3 shadow-sm dark:bg-gray-800">
+                                                        <div className="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">Email Address</div>
+                                                        <div className="text-sm text-gray-900 dark:text-white">
+                                                            {order.billing_info.email_address}
+                                                        </div>
+                                                    </div>
                                                     {order.billing_info.tin_sss_gsis_no && (
-                                                        <div>TIN/SSS/GSIS: {order.billing_info.tin_sss_gsis_no}</div>
+                                                        <div className="rounded-md bg-white p-3 shadow-sm dark:bg-gray-800">
+                                                            <div className="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+                                                                TIN/SSS/GSIS
+                                                            </div>
+                                                            {order.billing_info.tin_sss_gsis_no && order.billing_info.tin_sss_gsis_no !== 'null' && (
+                                                                <div className="text-sm text-gray-900 dark:text-white">
+                                                                    {order.billing_info.tin_sss_gsis_no}
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>
+                                        </div>
 
+                                        {/* Address & Employment Grid */}
+                                        <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
                                             {/* Address */}
-                                            <div>
-                                                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Address</h3>
-                                                <address className="text-sm text-gray-600 not-italic dark:text-gray-400 space-y-1">
-                                                    {order.billing_info.block_lot_phase_floor_unit && (
-                                                        <div>{order.billing_info.block_lot_phase_floor_unit}</div>
-                                                    )}
-                                                    <div>{order.billing_info.street}</div>
-                                                    {order.billing_info.village_subdivision_condo && (
-                                                        <div>{order.billing_info.village_subdivision_condo}</div>
-                                                    )}
-                                                    <div>{order.billing_info.barangay}</div>
-                                                    <div>{order.billing_info.city_municipality}, {order.billing_info.province_state}</div>
-                                                    <div>{order.billing_info.zip_code}</div>
-                                                </address>
+                                            <div className="rounded-lg border border-gray-200 bg-gray-50 p-5 dark:border-gray-600 dark:bg-gray-700/50">
+                                                <h3 className="mb-4 flex items-center text-sm font-semibold text-gray-900 dark:text-white">
+                                                    <svg className="mr-2 h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                                                        />
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                                                        />
+                                                    </svg>
+                                                    Address
+                                                </h3>
+                                                <div className="rounded-md bg-white p-3 shadow-sm dark:bg-gray-800">
+                                                    <address className="space-y-1 text-sm text-gray-600 not-italic dark:text-gray-400">
+                                                        {order.billing_info.block_lot_phase_floor_unit && (
+                                                            <div>{order.billing_info.block_lot_phase_floor_unit}</div>
+                                                        )}
+                                                        <div>{order.billing_info.street}</div>
+                                                        {order.billing_info.village_subdivision_condo && (
+                                                            <div>{order.billing_info.village_subdivision_condo}</div>
+                                                        )}
+                                                        <div>{order.billing_info.barangay}</div>
+                                                        <div>
+                                                            {order.billing_info.city_municipality}, {order.billing_info.province_state}
+                                                        </div>
+                                                        <div className="font-medium">{order.billing_info.zip_code}</div>
+                                                    </address>
+                                                </div>
                                             </div>
 
                                             {/* Employment Information */}
-                                            <div>
-                                                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Employment Information</h3>
-                                                <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                                                    <div>Occupation: {order.billing_info.occupation}</div>
-                                                    <div>Classification: {order.billing_info.occupational_classification?.replace('_', ' ').toUpperCase()}</div>
-                                                    <div>Source of Funds: {order.billing_info.source_of_funds === 'self_employed' ? 'Self Employed' : 'Salary'}</div>
+                                            <div className="rounded-lg border border-gray-200 bg-gray-50 p-5 dark:border-gray-600 dark:bg-gray-700/50">
+                                                <h3 className="mb-4 flex items-center text-sm font-semibold text-gray-900 dark:text-white">
+                                                    <svg className="mr-2 h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2V6z"
+                                                        />
+                                                    </svg>
+                                                    Employment Information
+                                                </h3>
+                                                <div className="space-y-3">
+                                                    <div className="rounded-md bg-white p-3 shadow-sm dark:bg-gray-800">
+                                                        <div className="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">Occupation</div>
+                                                        <div className="text-sm text-gray-900 dark:text-white">{order.billing_info.occupation}</div>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div className="rounded-md bg-white p-3 shadow-sm dark:bg-gray-800">
+                                                            <div className="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+                                                                Classification
+                                                            </div>
+                                                            <div className="text-sm text-gray-900 dark:text-white">
+                                                                {order.billing_info.occupational_classification?.replace('_', ' ').toUpperCase()}
+                                                            </div>
+                                                        </div>
+                                                        <div className="rounded-md bg-white p-3 shadow-sm dark:bg-gray-800">
+                                                            <div className="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+                                                                Source of Funds
+                                                            </div>
+                                                            <div className="text-sm text-gray-900 dark:text-white">
+                                                                {order.billing_info.source_of_funds === 'self_employed' ? 'Self Employed' : 'Salary'}
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                     {order.billing_info.name_of_employer_business && (
-                                                        <div>Employer: {order.billing_info.name_of_employer_business}</div>
+                                                        <div className="rounded-md bg-white p-3 shadow-sm dark:bg-gray-800">
+                                                            <div className="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">Employer</div>
+                                                            {order.billing_info.name_of_employer_business &&
+                                                                order.billing_info.name_of_employer_business !== 'null' && (
+                                                                    <div className="text-sm text-gray-900 dark:text-white">
+                                                                        {order.billing_info.name_of_employer_business}
+                                                                    </div>
+                                                                )}
+                                                        </div>
                                                     )}
                                                     {order.billing_info.nature_of_employment_business && (
-                                                        <div>Nature of Business: {order.billing_info.nature_of_employment_business}</div>
+                                                        <div className="rounded-md bg-white p-3 shadow-sm dark:bg-gray-800">
+                                                            <div className="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+                                                                Nature of Business
+                                                            </div>
+                                                            {order.billing_info.nature_of_employment_business &&
+                                                                order.billing_info.nature_of_employment_business !== 'null' && (
+                                                                    <div className="text-sm text-gray-900 dark:text-white">
+                                                                        {order.billing_info.nature_of_employment_business}
+                                                                    </div>
+                                                                )}
+                                                        </div>
                                                     )}
                                                     {order.billing_info.employer_business_address && (
-                                                        <div>Employer Address: {order.billing_info.employer_business_address}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            {/* Insurance Plan */}
-                                            <div>
-                                                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Insurance Plan</h3>
-                                                <div className="text-sm text-gray-600 dark:text-gray-400">
-                                                    <div className="font-medium">
-                                                        {order.billing_info.choice_of_plan === 'class_i' && 'Class I - Principal Insured Only'}
-                                                        {order.billing_info.choice_of_plan === 'class_ii' && 'Class II - Principal + Spouse/Parent'}
-                                                        {order.billing_info.choice_of_plan === 'class_iii' && 'Class III - Principal + Family Members'}
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Family Members (Class II/III) */}
-                                            {order.billing_info.family_members && order.billing_info.family_members.length > 0 && (
-                                                <div>
-                                                    <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Family Members</h3>
-                                                    <div className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
-                                                        {order.billing_info.family_members.map((member, index) => (
-                                                            <div key={index} className="border-l-2 border-gray-200 pl-3 dark:border-gray-600">
-                                                                <div className="font-medium">
-                                                                    {member.first_name} {member.middle_name} {member.last_name} {member.suffix}
-                                                                </div>
-                                                                <div>Relationship: {member.relationship === 'spouse' ? 'Spouse' : 'Parent'}</div>
-                                                                <div>Date of Birth: {new Date(member.date_of_birth).toLocaleDateString()}</div>
-                                                                {member.gender && <div>Gender: {member.gender === 'male' ? 'Male' : 'Female'}</div>}
-                                                                {member.occupation_education && <div>Occupation: {member.occupation_education}</div>}
+                                                        <div className="rounded-md bg-white p-3 shadow-sm dark:bg-gray-800">
+                                                            <div className="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+                                                                Employer Address
                                                             </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Children/Siblings (Class III) */}
-                                            {order.billing_info.children_siblings && order.billing_info.children_siblings.length > 0 && (
-                                                <div>
-                                                    <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Children/Siblings</h3>
-                                                    <div className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
-                                                        {order.billing_info.children_siblings.map((child, index) => (
-                                                            <div key={index} className="border-l-2 border-gray-200 pl-3 dark:border-gray-600">
-                                                                <div className="font-medium">{child.full_name}</div>
-                                                                <div>Relationship: {child.relationship === 'child' ? 'Child' : 'Sibling'}</div>
-                                                                <div>Date of Birth: {new Date(child.date_of_birth).toLocaleDateString()}</div>
-                                                                {child.occupation_education && <div>Occupation/Education: {child.occupation_education}</div>}
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Legal Agreements */}
-                                            <div>
-                                                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Legal Agreements</h3>
-                                                <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                                                    <div className="flex items-center">
-                                                        <span className="text-green-600 mr-2">✓</span>
-                                                        Terms and Conditions Accepted
-                                                    </div>
-                                                    <div className="flex items-center">
-                                                        <span className="text-green-600 mr-2">✓</span>
-                                                        Data Privacy Consent Given
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Right Column: Order Items & Payment (2/3) */}
-                            <div className="lg:col-span-2">
-                                <div className="space-y-6">
-                                    {/* Order Items & Summary */}
-                                    <div className="rounded-lg bg-white shadow dark:bg-gray-800">
-                                        <div className="px-4 py-5 sm:px-6">
-                                            <h2 className="text-lg font-medium text-gray-900 dark:text-white">Order Items & Summary</h2>
-                                        </div>
-                                        <div className="border-t border-gray-200 dark:border-gray-700">
-                                            <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                                                {order.order_items.map((item) => (
-                                                    <li key={item.id} className="px-4 py-6 sm:px-6">
-                                                        <div className="flex items-center justify-between">
-                                                            <div className="flex-1">
-                                                                <h3 className="text-sm font-medium text-gray-900 dark:text-white">{item.product_name}</h3>
-                                                                {item.store && (
-                                                                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                                                        Sold by {item.store.name}
-                                                                    </p>
+                                                            {order.billing_info.employer_business_address &&
+                                                                order.billing_info.employer_business_address !== 'null' && (
+                                                                    <div className="text-sm text-gray-900 dark:text-white">
+                                                                        {order.billing_info.employer_business_address}
+                                                                    </div>
                                                                 )}
-                                                                <div className="mt-2 flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                                                    <span>Qty: {item.quantity}</span>
-                                                                    <span className="mx-2">•</span>
-                                                                    <span>{formatCurrency(item.product_price * 100)} each</span>
-                                                                </div>
-                                                            </div>
-                                                            <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                                                {formatCurrency(item.total_price)}
-                                                            </div>
-                                                        </div>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                            {/* Order Summary within same box */}
-                                            <div className="border-t border-gray-200 bg-gray-50 px-4 py-5 sm:px-6 dark:border-gray-700 dark:bg-gray-700">
-                                                <dl className="space-y-3">
-                                                    <div className="flex items-center justify-between">
-                                                        <dt className="text-sm text-gray-600 dark:text-gray-400">Subtotal</dt>
-                                                        <dd className="text-sm font-medium text-gray-900 dark:text-white">
-                                                            {formatCurrency(order.subtotal)}
-                                                        </dd>
-                                                    </div>
-                                                    {order.tax_amount && (
-                                                        <div className="flex items-center justify-between">
-                                                            <dt className="text-sm text-gray-600 dark:text-gray-400">Tax</dt>
-                                                            <dd className="text-sm font-medium text-gray-900 dark:text-white">
-                                                                {formatCurrency(order.tax_amount)}
-                                                            </dd>
                                                         </div>
                                                     )}
-                                                    <div className="flex items-center justify-between border-t border-gray-200 pt-3 dark:border-gray-700">
-                                                        <dt className="text-base font-medium text-gray-900 dark:text-white">Total</dt>
-                                                        <dd className="text-base font-medium text-gray-900 dark:text-white">
-                                                            {formatCurrency(order.total_amount)}
-                                                        </dd>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Family Members Section */}
+                                        {((order.billing_info.family_members && order.billing_info.family_members.length > 0) ||
+                                            (order.billing_info.children_siblings && order.billing_info.children_siblings.length > 0)) && (
+                                            <div className="mb-8">
+                                                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                                                    {/* Family Members (Class II/III) */}
+                                                    {order.billing_info.family_members && order.billing_info.family_members.length > 0 && (
+                                                        <div className="rounded-lg border border-gray-200 bg-gray-50 p-5 dark:border-gray-600 dark:bg-gray-700/50">
+                                                            <h4 className="mb-4 flex items-center text-sm font-semibold text-gray-900 dark:text-white">
+                                                                <svg
+                                                                    className="mr-2 h-4 w-4 text-gray-500"
+                                                                    fill="none"
+                                                                    stroke="currentColor"
+                                                                    viewBox="0 0 24 24"
+                                                                >
+                                                                    <path
+                                                                        strokeLinecap="round"
+                                                                        strokeLinejoin="round"
+                                                                        strokeWidth={2}
+                                                                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                                                                    />
+                                                                </svg>
+                                                                Family Members
+                                                            </h4>
+                                                            <div className="space-y-3">
+                                                                {order.billing_info.family_members.map((member, index) => (
+                                                                    <div
+                                                                        key={index}
+                                                                        className="rounded-md border-l-4 border-indigo-200 bg-white p-3 shadow-sm dark:border-indigo-700 dark:bg-gray-800"
+                                                                    >
+                                                                        <div className="mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                                                            {member.first_name} {member.middle_name ? member.middle_name + ' ' : ''}
+                                                                            {member.last_name}
+                                                                            {member.suffix ? ' ' + member.suffix : ''}
+                                                                        </div>
+                                                                        <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 dark:text-gray-400">
+                                                                            <div>
+                                                                                <span className="font-medium">Relationship:</span>{' '}
+                                                                                {member.relationship === 'spouse' ? 'Spouse' : 'Parent'}
+                                                                            </div>
+                                                                            <div>
+                                                                                <span className="font-medium">Birthdate:</span>{' '}
+                                                                                {new Date(member.date_of_birth).toLocaleDateString()}
+                                                                            </div>
+                                                                            {member.gender && (
+                                                                                <div>
+                                                                                    <span className="font-medium">Gender:</span>{' '}
+                                                                                    {member.gender === 'male' ? 'Male' : 'Female'}
+                                                                                </div>
+                                                                            )}
+                                                                            {member.occupation_education && (
+                                                                                <div>
+                                                                                    <span className="font-medium">Occupation:</span>{' '}
+                                                                                    {member.occupation_education}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Children/Siblings (Class III only) */}
+                                                    {order.billing_info.choice_of_plan === 'class_iii' &&
+                                                        order.billing_info.children_siblings &&
+                                                        order.billing_info.children_siblings.length > 0 &&
+                                                        order.billing_info.children_siblings.some(
+                                                            (child) => child.full_name && child.relationship && child.date_of_birth,
+                                                        ) && (
+                                                            <div className="rounded-lg border border-gray-200 bg-gray-50 p-5 dark:border-gray-600 dark:bg-gray-700/50">
+                                                                <h4 className="mb-4 flex items-center text-sm font-semibold text-gray-900 dark:text-white">
+                                                                    <svg
+                                                                        className="mr-2 h-4 w-4 text-gray-500"
+                                                                        fill="none"
+                                                                        stroke="currentColor"
+                                                                        viewBox="0 0 24 24"
+                                                                    >
+                                                                        <path
+                                                                            strokeLinecap="round"
+                                                                            strokeLinejoin="round"
+                                                                            strokeWidth={2}
+                                                                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                                                                        />
+                                                                    </svg>
+                                                                    Children/Siblings
+                                                                </h4>
+                                                                <div className="space-y-3">
+                                                                    {order.billing_info.children_siblings.map((child, index) => (
+                                                                        <div
+                                                                            key={index}
+                                                                            className="rounded-md border-l-4 border-green-200 bg-white p-3 shadow-sm dark:border-green-700 dark:bg-gray-800"
+                                                                        >
+                                                                            <div className="mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                                                                {child.full_name}
+                                                                            </div>
+                                                                            <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 dark:text-gray-400">
+                                                                                <div>
+                                                                                    <span className="font-medium">Relationship:</span>{' '}
+                                                                                    {child.relationship === 'child' ? 'Child' : 'Sibling'}
+                                                                                </div>
+                                                                                <div>
+                                                                                    <span className="font-medium">Birthdate:</span>{' '}
+                                                                                    {new Date(child.date_of_birth).toLocaleDateString()}
+                                                                                </div>
+                                                                                {child.occupation_education && (
+                                                                                    <div className="col-span-2">
+                                                                                        <span className="font-medium">Occupation/Education:</span>{' '}
+                                                                                        {child.occupation_education}
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Legal Agreements */}
+                                        <div className="rounded-lg border border-green-200 bg-green-50 p-6 dark:border-green-800 dark:bg-green-900/20">
+                                            <h3 className="mb-4 flex items-center text-sm font-semibold text-green-900 dark:text-green-100">
+                                                <svg className="mr-2 h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                    />
+                                                </svg>
+                                                Legal Agreements
+                                            </h3>
+                                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                                <div className="flex items-center rounded-md bg-white p-3 shadow-sm dark:bg-gray-800">
+                                                    <span className="mr-3 text-lg text-green-600">✓</span>
+                                                    <div>
+                                                        <div className="text-sm font-medium text-gray-900 dark:text-white">Terms & Conditions</div>
+                                                        <div className="text-xs text-gray-500 dark:text-gray-400">Accepted and agreed</div>
                                                     </div>
-                                                </dl>
+                                                </div>
+                                                <div className="flex items-center rounded-md bg-white p-3 shadow-sm dark:bg-gray-800">
+                                                    <span className="mr-3 text-lg text-green-600">✓</span>
+                                                    <div>
+                                                        <div className="text-sm font-medium text-gray-900 dark:text-white">Data Privacy Consent</div>
+                                                        <div className="text-xs text-gray-500 dark:text-gray-400">Consent provided</div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-
-                                    {/* Payment Information */}
-                                    {order.payment && (
-                                        <div className="rounded-lg bg-white shadow dark:bg-gray-800">
-                                            <div className="px-4 py-5 sm:px-6">
-                                                <h2 className="text-lg font-medium text-gray-900 dark:text-white">Payment</h2>
-                                            </div>
-                                            <div className="border-t border-gray-200 px-4 py-5 sm:px-6 dark:border-gray-700">
-                                                <dl className="space-y-3">
-                                                    <div className="flex items-center justify-between">
-                                                        <dt className="text-sm text-gray-600 dark:text-gray-400">Status</dt>
-                                                        <dd className={`text-sm font-medium ${getPaymentStatusColor(order.payment.status)}`}>
-                                                            {order.payment.status.charAt(0).toUpperCase() + order.payment.status.slice(1)}
-                                                        </dd>
-                                                    </div>
-                                                    <div className="flex items-center justify-between">
-                                                        <dt className="text-sm text-gray-600 dark:text-gray-400">Amount</dt>
-                                                        <dd className="text-sm font-medium text-gray-900 dark:text-white">
-                                                            {formatCurrencyFromPesos(order.payment.amount)} {order.payment.currency}
-                                                        </dd>
-                                                    </div>
-                                                    {order.payment.magpie_transaction_id && (
-                                                        <div className="flex items-center justify-between">
-                                                            <dt className="text-sm text-gray-600 dark:text-gray-400">Transaction ID</dt>
-                                                            <dd className="font-mono text-sm text-gray-900 dark:text-white">
-                                                                {order.payment.magpie_transaction_id}
-                                                            </dd>
-                                                        </div>
-                                                    )}
-                                                </dl>
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         </div>

@@ -2,31 +2,31 @@ import FlashMessages from '@/components/FlashMessages';
 import MultiStepForm from '@/components/MultiStepForm';
 import StorefrontLayout from '@/layouts/StorefrontLayout';
 import { User } from '@/types';
-import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 
 // Occupational Classifications
 const occupationalClasses = {
     class_1: {
-        label: "Class 1",
-        description: "Professional, technical, and related workers",
-        examples: "Engineers, Doctors, Lawyers, Teachers, Architects, Accountants, Nurses, etc."
+        label: 'Class 1',
+        description: 'Professional, technical, and related workers',
+        examples: 'Engineers, Doctors, Lawyers, Teachers, Architects, Accountants, Nurses, etc.',
     },
     class_2: {
-        label: "Class 2",
-        description: "Administrative and managerial workers, clerical and related workers",
-        examples: "Managers, Supervisors, Office Workers, Sales Personnel, Cashiers, etc."
+        label: 'Class 2',
+        description: 'Administrative and managerial workers, clerical and related workers',
+        examples: 'Managers, Supervisors, Office Workers, Sales Personnel, Cashiers, etc.',
     },
     class_3: {
-        label: "Class 3",
-        description: "Service workers and skilled workers in agriculture, forestry, fishing, and hunting",
-        examples: "Police Officers, Security Guards, Farmers, Fishermen, Restaurant Workers, etc."
+        label: 'Class 3',
+        description: 'Service workers and skilled workers in agriculture, forestry, fishing, and hunting',
+        examples: 'Police Officers, Security Guards, Farmers, Fishermen, Restaurant Workers, etc.',
     },
     class_4: {
-        label: "Class 4",
-        description: "Production and related workers, transport equipment operators, and laborers",
-        examples: "Factory Workers, Construction Workers, Drivers, Machine Operators, Mechanics, etc."
-    }
+        label: 'Class 4',
+        description: 'Production and related workers, transport equipment operators, and laborers',
+        examples: 'Factory Workers, Construction Workers, Drivers, Machine Operators, Mechanics, etc.',
+    },
 };
 
 interface CartItem {
@@ -133,8 +133,8 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                     suffix: '',
                     gender: '',
                     date_of_birth: '',
-                    occupation_education: ''
-                }
+                    occupation_education: '',
+                },
             ],
 
             // Children/Siblings (dynamic)
@@ -143,8 +143,8 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                     full_name: '',
                     relationship: '',
                     date_of_birth: '',
-                    occupation_education: ''
-                }
+                    occupation_education: '',
+                },
             ],
 
             // Agreement and Privacy
@@ -235,14 +235,17 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                 full_name: '',
                 relationship: '',
                 date_of_birth: '',
-                occupation_education: ''
-            }
+                occupation_education: '',
+            },
         ]);
     };
 
     const removeChildSibling = (index: number) => {
         if (data.children_siblings.length > 1) {
-            setData('children_siblings', data.children_siblings.filter((_, i) => i !== index));
+            setData(
+                'children_siblings',
+                data.children_siblings.filter((_, i) => i !== index),
+            );
         }
     };
 
@@ -254,47 +257,108 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
 
     // Step validation functions
     const validateStep = (step: number): boolean => {
+        console.log(`Validating step ${step}...`);
+        let isValid = false;
+
         switch (step) {
             case 1: // Application Type
-                return !!data.application_type && (data.application_type !== 'renewal' || !!data.existing_policy_number);
+                isValid = !!data.application_type && (data.application_type !== 'renewal' || !!data.existing_policy_number);
+                console.log(
+                    `Step 1 validation - application_type: ${data.application_type}, existing_policy_number: ${data.existing_policy_number}, valid: ${isValid}`,
+                );
+                return isValid;
             case 2: // Personal Information
-                return !!(data.first_name && data.last_name && data.mobile_no && data.email_address &&
-                         data.gender && data.civil_status && data.date_of_birth && data.place_of_birth &&
-                         data.citizenship_nationality && data.source_of_funds);
+                isValid = !!(
+                    data.first_name &&
+                    data.last_name &&
+                    data.mobile_no &&
+                    data.email_address &&
+                    data.gender &&
+                    data.civil_status &&
+                    data.date_of_birth &&
+                    data.place_of_birth &&
+                    data.citizenship_nationality &&
+                    data.source_of_funds
+                );
+                console.log(`Step 2 validation - valid: ${isValid}`, {
+                    first_name: data.first_name,
+                    last_name: data.last_name,
+                    mobile_no: data.mobile_no,
+                    email_address: data.email_address,
+                    gender: data.gender,
+                    civil_status: data.civil_status,
+                    date_of_birth: data.date_of_birth,
+                    place_of_birth: data.place_of_birth,
+                    citizenship_nationality: data.citizenship_nationality,
+                    source_of_funds: data.source_of_funds,
+                });
+                return isValid;
             case 3: // Address Information
-                return !!(data.street && data.barangay && data.city_municipality && data.province_state && data.zip_code);
+                isValid = !!(data.street && data.barangay && data.city_municipality && data.province_state && data.zip_code);
+                console.log(`Step 3 validation - valid: ${isValid}`, {
+                    street: data.street,
+                    barangay: data.barangay,
+                    city_municipality: data.city_municipality,
+                    province_state: data.province_state,
+                    zip_code: data.zip_code,
+                });
+                return isValid;
             case 4: // Employment Information
-                return !!(data.occupation && data.occupational_classification);
+                isValid = !!(data.occupation && data.occupational_classification);
+                console.log(`Step 4 validation - valid: ${isValid}`, {
+                    occupation: data.occupation,
+                    occupational_classification: data.occupational_classification,
+                });
+                return isValid;
             case 5: // Insurance Plan Selection
-                if (!data.choice_of_plan) return false;
+                if (!data.choice_of_plan) {
+                    console.log('Step 5 validation - no plan selected');
+                    return false;
+                }
 
                 // Class I - no additional requirements
-                if (data.choice_of_plan === 'class_i') return true;
+                if (data.choice_of_plan === 'class_i') {
+                    console.log('Step 5 validation - Class I selected, valid: true');
+                    return true;
+                }
 
                 // Class II - requires spouse/parent information
                 if (data.choice_of_plan === 'class_ii') {
                     const spouseParent = data.family_members[0];
-                    return !!(spouseParent?.first_name && spouseParent?.last_name &&
-                             spouseParent?.relationship && spouseParent?.date_of_birth);
+                    isValid = !!(spouseParent?.first_name && spouseParent?.last_name && spouseParent?.relationship && spouseParent?.date_of_birth);
+                    console.log(`Step 5 validation - Class II, spouse/parent valid: ${isValid}`, spouseParent);
+                    return isValid;
                 }
 
                 // Class III - requires spouse/parent AND at least one child/sibling
                 if (data.choice_of_plan === 'class_iii') {
                     const spouseParent = data.family_members[0];
-                    const hasSpouseParent = !!(spouseParent?.first_name && spouseParent?.last_name &&
-                                              spouseParent?.relationship && spouseParent?.date_of_birth);
-
-                    const hasChildSibling = data.children_siblings.some(child =>
-                        child.full_name && child.relationship && child.date_of_birth
+                    const hasSpouseParent = !!(
+                        spouseParent?.first_name &&
+                        spouseParent?.last_name &&
+                        spouseParent?.relationship &&
+                        spouseParent?.date_of_birth
                     );
 
-                    return hasSpouseParent && hasChildSibling;
+                    const hasChildSibling = data.children_siblings.some((child) => child.full_name && child.relationship && child.date_of_birth);
+                    isValid = hasSpouseParent && hasChildSibling;
+                    console.log(
+                        `Step 5 validation - Class III, spouse/parent valid: ${hasSpouseParent}, child/sibling valid: ${hasChildSibling}, overall valid: ${isValid}`,
+                    );
+                    return isValid;
                 }
 
+                console.log('Step 5 validation - unknown plan type');
                 return false;
             case 6: // Legal Agreements
-                return data.agreement_accepted && data.data_privacy_consent;
+                isValid = data.agreement_accepted && data.data_privacy_consent;
+                console.log(`Step 6 validation - valid: ${isValid}`, {
+                    agreement_accepted: data.agreement_accepted,
+                    data_privacy_consent: data.data_privacy_consent,
+                });
+                return isValid;
             default:
+                console.log(`Step ${step} validation - unknown step`);
                 return false;
         }
     };
@@ -330,18 +394,61 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // Store debug info in localStorage so it persists through page reloads
+        localStorage.setItem(
+            'debug_form_data',
+            JSON.stringify({
+                currentStep,
+                totalSteps: steps.length,
+                processing,
+                isRedirecting,
+                formData: data,
+                timestamp: new Date().toISOString(),
+            }),
+        );
+
+        console.log('=== FORM SUBMISSION DEBUG ===');
+        console.log('Current Step:', currentStep);
+        console.log('Total Steps:', steps.length);
+        console.log('Processing:', processing);
+        console.log('Is Redirecting:', isRedirecting);
+        console.log('Form Data:', data);
+        console.log('Debug data saved to localStorage');
+
         // If not on final step, just go to next step
         if (currentStep < steps.length) {
+            console.log('Not on final step, going to next step');
             nextStep();
             return;
         }
 
+        console.log('On final step, attempting to submit and redirect to payment');
+
+        // Check for potential validation issues
+        if (data.choice_of_plan === 'class_ii' || data.choice_of_plan === 'class_iii') {
+            console.log('Class II/III plan selected, checking family_members:', data.family_members);
+            if (!data.family_members || data.family_members.length === 0) {
+                console.error('VALIDATION ISSUE: family_members is required for Class II/III but is empty');
+                localStorage.setItem('validation_error', 'family_members required but empty');
+            }
+        }
+
+        if (data.choice_of_plan === 'class_iii') {
+            console.log('Class III plan selected, checking children_siblings:', data.children_siblings);
+            if (!data.children_siblings || data.children_siblings.length === 0) {
+                console.error('VALIDATION ISSUE: children_siblings is required for Class III but is empty');
+                localStorage.setItem('validation_error', 'children_siblings required but empty');
+            }
+        }
+
         // Only submit on final step
         if (!processing && !isRedirecting) {
+            console.log('Setting isRedirecting to true');
             setIsRedirecting(true);
 
             try {
                 // Refresh CSRF token before submission
+                console.log('Fetching fresh CSRF token...');
                 const response = await fetch('/csrf-token', {
                     method: 'GET',
                     headers: {
@@ -350,26 +457,34 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                     },
                 });
 
+                console.log('CSRF token response status:', response.status);
                 let freshToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                console.log('Initial CSRF token from meta tag:', freshToken);
 
                 if (response.ok) {
                     const tokenData = await response.json();
+                    console.log('CSRF token response data:', tokenData);
                     if (tokenData.csrf_token) {
                         freshToken = tokenData.csrf_token;
+                        console.log('Using fresh CSRF token:', freshToken);
                         // Update the meta tag with fresh token
                         const metaTag = document.querySelector('meta[name="csrf-token"]');
                         if (metaTag && freshToken) {
                             metaTag.setAttribute('content', freshToken);
                         }
                     }
+                } else {
+                    console.log('Failed to fetch fresh CSRF token, using existing token');
                 }
 
                 // For payment flows that redirect to external services (like Magpie),
                 // we need to use a regular form submission instead of AJAX to allow
                 // the browser to properly handle the external redirect
+                console.log('Creating form for submission...');
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = '/orders/checkout';
+                console.log('Form action set to:', form.action);
 
                 // Add fresh CSRF token
                 if (freshToken) {
@@ -378,22 +493,52 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                     csrfInput.name = '_token';
                     csrfInput.value = freshToken;
                     form.appendChild(csrfInput);
+                    console.log('Added CSRF token to form');
+                } else {
+                    console.error('No CSRF token available!');
                 }
 
                 // Add form data
+                console.log('Adding form data to form...');
                 Object.entries(data).forEach(([key, value]) => {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = key;
-                    input.value = typeof value === 'object' ? JSON.stringify(value) : String(value);
-                    form.appendChild(input);
+                    if (Array.isArray(value)) {
+                        // Handle arrays properly for Laravel
+                        value.forEach((item, index) => {
+                            if (typeof item === 'object') {
+                                Object.entries(item).forEach(([subKey, subValue]) => {
+                                    const input = document.createElement('input');
+                                    input.type = 'hidden';
+                                    input.name = `${key}[${index}][${subKey}]`;
+                                    input.value = subValue ? String(subValue) : '';
+                                    form.appendChild(input);
+                                });
+                            } else {
+                                const input = document.createElement('input');
+                                input.type = 'hidden';
+                                input.name = `${key}[${index}]`;
+                                input.value = item ? String(item) : '';
+                                form.appendChild(input);
+                            }
+                        });
+                    } else {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = key;
+                        input.value = typeof value === 'object' ? JSON.stringify(value) : String(value);
+                        form.appendChild(input);
+                    }
                 });
+                console.log('Form data added, total inputs:', form.querySelectorAll('input').length);
 
                 // Submit the form
+                console.log('Appending form to body and submitting...');
                 document.body.appendChild(form);
+                console.log('Form appended to body');
                 form.submit();
+                console.log('Form submitted!');
             } catch (error) {
                 console.error('Failed to refresh CSRF token:', error);
+                console.log('Falling back to original submission method');
                 setIsRedirecting(false);
                 // Fallback to original submission if token refresh fails
                 const form = document.createElement('form');
@@ -401,25 +546,53 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                 form.action = '/orders/checkout';
 
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                console.log('Fallback CSRF token:', csrfToken);
                 if (csrfToken) {
                     const csrfInput = document.createElement('input');
                     csrfInput.type = 'hidden';
                     csrfInput.name = '_token';
                     csrfInput.value = csrfToken;
                     form.appendChild(csrfInput);
+                    console.log('Added fallback CSRF token to form');
                 }
 
+                console.log('Adding fallback form data...');
                 Object.entries(data).forEach(([key, value]) => {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = key;
-                    input.value = typeof value === 'object' ? JSON.stringify(value) : String(value);
-                    form.appendChild(input);
+                    if (Array.isArray(value)) {
+                        // Handle arrays properly for Laravel
+                        value.forEach((item, index) => {
+                            if (typeof item === 'object') {
+                                Object.entries(item).forEach(([subKey, subValue]) => {
+                                    const input = document.createElement('input');
+                                    input.type = 'hidden';
+                                    input.name = `${key}[${index}][${subKey}]`;
+                                    input.value = subValue ? String(subValue) : '';
+                                    form.appendChild(input);
+                                });
+                            } else {
+                                const input = document.createElement('input');
+                                input.type = 'hidden';
+                                input.name = `${key}[${index}]`;
+                                input.value = item ? String(item) : '';
+                                form.appendChild(input);
+                            }
+                        });
+                    } else {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = key;
+                        input.value = typeof value === 'object' ? JSON.stringify(value) : String(value);
+                        form.appendChild(input);
+                    }
                 });
 
+                console.log('Submitting fallback form...');
                 document.body.appendChild(form);
                 form.submit();
+                console.log('Fallback form submitted!');
             }
+        } else {
+            console.log('Cannot submit - processing:', processing, 'isRedirecting:', isRedirecting);
         }
     };
 
@@ -465,21 +638,24 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                     <FlashMessages flash={flash} />
 
                     {/* Resume Draft Prompt */}
-                    {showResumePrompt && draftData && (
-                        <div className="rounded-lg bg-blue-50 border border-blue-200 p-4 dark:bg-blue-900/20 dark:border-blue-800">
+                    {showResumePrompt && draftData && currentStep < steps.length && (
+                        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
                             <div className="flex items-start justify-between">
                                 <div className="flex">
                                     <div className="flex-shrink-0">
                                         <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                            <path
+                                                fillRule="evenodd"
+                                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                                clipRule="evenodd"
+                                            />
                                         </svg>
                                     </div>
                                     <div className="ml-3 flex-1">
-                                        <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                                            Continue Your Application
-                                        </h3>
+                                        <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200">Continue Your Application</h3>
                                         <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">
-                                            You have an incomplete application from {draftData.last_accessed_at}. Would you like to continue where you left off?
+                                            You have an incomplete application from {draftData.last_accessed_at}. Would you like to continue where you
+                                            left off?
                                         </p>
                                         <div className="mt-3 flex gap-3">
                                             <button
@@ -488,7 +664,7 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                     setCurrentStep(draftData.current_step);
                                                     setShowResumePrompt(false);
                                                 }}
-                                                className="text-sm bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="rounded-md bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                             >
                                                 Continue Application
                                             </button>
@@ -499,7 +675,7 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                     // Optionally delete the draft
                                                     fetch('/draft-policy/delete', { method: 'DELETE' });
                                                 }}
-                                                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
+                                                className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200"
                                             >
                                                 Start Fresh
                                             </button>
@@ -556,34 +732,41 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                         <div>
                             <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
                                 <div className="mb-6">
-                                    <div className="flex items-center justify-between mb-2">
+                                    <div className="mb-2 flex items-center justify-between">
                                         <h2 className="text-lg font-bold text-gray-900 dark:text-white">Personal Accident Insurance Application</h2>
                                         {isDraftSaving && (
                                             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                                                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                    <circle
+                                                        className="opacity-25"
+                                                        cx="12"
+                                                        cy="12"
+                                                        r="10"
+                                                        stroke="currentColor"
+                                                        strokeWidth="4"
+                                                    ></circle>
+                                                    <path
+                                                        className="opacity-75"
+                                                        fill="currentColor"
+                                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                    ></path>
                                                 </svg>
                                                 Saving draft...
                                             </div>
                                         )}
                                     </div>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Step {currentStep} of {steps.length}: {steps[currentStep - 1]?.description}</p>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                        Step {currentStep} of {steps.length}: {steps[currentStep - 1]?.description}
+                                    </p>
                                 </div>
 
-                                <MultiStepForm
-                                    steps={steps}
-                                    currentStep={currentStep}
-                                    onStepChange={goToStep}
-                                    canProceedToStep={canProceedToStep}
-                                >
-
+                                <MultiStepForm steps={steps} currentStep={currentStep} onStepChange={goToStep} canProceedToStep={canProceedToStep}>
                                     <form onSubmit={handleSubmit} className="space-y-6">
                                         {/* Step 1: Application Type */}
                                         {currentStep === 1 && (
                                             <div>
                                                 <h3 className="mb-4 text-lg font-medium text-gray-900 dark:text-white">Application Type</h3>
-                                                <div className="flex items-center gap-6 mb-4">
+                                                <div className="mb-4 flex items-center gap-6">
                                                     <div className="flex items-center gap-2">
                                                         <input
                                                             type="radio"
@@ -594,7 +777,9 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                             onChange={(e) => setData('application_type', e.target.value)}
                                                             className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
                                                         />
-                                                        <label htmlFor="new" className="text-sm font-medium">New Application</label>
+                                                        <label htmlFor="new" className="text-sm font-medium">
+                                                            New Application
+                                                        </label>
                                                     </div>
                                                     <div className="flex items-center gap-2">
                                                         <input
@@ -606,13 +791,17 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                             onChange={(e) => setData('application_type', e.target.value)}
                                                             className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
                                                         />
-                                                        <label htmlFor="renewal" className="text-sm font-medium">Policy Renewal</label>
+                                                        <label htmlFor="renewal" className="text-sm font-medium">
+                                                            Policy Renewal
+                                                        </label>
                                                     </div>
                                                 </div>
 
                                                 {data.application_type === 'renewal' && (
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Existing Policy Number *</label>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            Existing Policy Number *
+                                                        </label>
                                                         <input
                                                             type="text"
                                                             value={data.existing_policy_number}
@@ -630,9 +819,11 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                         {currentStep === 2 && (
                                             <div>
                                                 <h3 className="mb-4 text-lg font-medium text-gray-900 dark:text-white">Personal Information</h3>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                                                <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Last Name *</label>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            Last Name *
+                                                        </label>
                                                         <input
                                                             type="text"
                                                             value={data.last_name}
@@ -642,7 +833,9 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">First Name *</label>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            First Name *
+                                                        </label>
                                                         <input
                                                             type="text"
                                                             value={data.first_name}
@@ -652,7 +845,9 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Middle Name</label>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            Middle Name
+                                                        </label>
                                                         <input
                                                             type="text"
                                                             value={data.middle_name}
@@ -661,7 +856,9 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Suffix</label>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            Suffix
+                                                        </label>
                                                         <input
                                                             type="text"
                                                             value={data.suffix}
@@ -672,9 +869,11 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                     </div>
                                                 </div>
 
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                                <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Mobile Number *</label>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            Mobile Number *
+                                                        </label>
                                                         <input
                                                             type="tel"
                                                             value={data.mobile_no}
@@ -685,7 +884,9 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Email Address *</label>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            Email Address *
+                                                        </label>
                                                         <input
                                                             type="email"
                                                             value={data.email_address}
@@ -695,7 +896,9 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">TIN/SSS/GSIS Number</label>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            TIN/SSS/GSIS Number
+                                                        </label>
                                                         <input
                                                             type="text"
                                                             value={data.tin_sss_gsis_no}
@@ -706,10 +909,12 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                     </div>
                                                 </div>
 
-                                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                                <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Gender *</label>
-                                                        <div className="flex gap-4 mt-2">
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            Gender *
+                                                        </label>
+                                                        <div className="mt-2 flex gap-4">
                                                             <label className="flex items-center">
                                                                 <input
                                                                     type="radio"
@@ -737,8 +942,10 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Civil Status *</label>
-                                                        <div className="flex gap-4 mt-2">
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            Civil Status *
+                                                        </label>
+                                                        <div className="mt-2 flex gap-4">
                                                             <label className="flex items-center">
                                                                 <input
                                                                     type="radio"
@@ -766,7 +973,9 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Date of Birth *</label>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            Date of Birth *
+                                                        </label>
                                                         <input
                                                             type="date"
                                                             value={data.date_of_birth}
@@ -776,7 +985,9 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Place of Birth *</label>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            Place of Birth *
+                                                        </label>
                                                         <input
                                                             type="text"
                                                             value={data.place_of_birth}
@@ -787,24 +998,26 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                     </div>
                                                 </div>
 
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                                <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Nationality</label>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            Nationality
+                                                        </label>
                                                         <div className="relative">
                                                             <input
                                                                 type="text"
                                                                 value="Filipino"
                                                                 readOnly
-                                                                className="w-full rounded-md border border-gray-300 px-3 py-2 pl-10 shadow-sm bg-gray-50 text-gray-700 cursor-not-allowed dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
+                                                                className="w-full cursor-not-allowed rounded-md border border-gray-300 bg-gray-50 px-3 py-2 pl-10 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
                                                             />
-                                                            <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                                                                🇵🇭
-                                                            </div>
+                                                            <div className="absolute top-1/2 left-3 -translate-y-1/2 transform">🇵🇭</div>
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Source of Funds *</label>
-                                                        <div className="flex gap-4 mt-2">
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            Source of Funds *
+                                                        </label>
+                                                        <div className="mt-2 flex gap-4">
                                                             <label className="flex items-center">
                                                                 <input
                                                                     type="radio"
@@ -839,9 +1052,11 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                         {currentStep === 3 && (
                                             <div>
                                                 <h3 className="mb-4 text-lg font-medium text-gray-900 dark:text-white">Address Information</h3>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                                <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">House/Unit Number</label>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            House/Unit Number
+                                                        </label>
                                                         <input
                                                             type="text"
                                                             value={data.block_lot_phase_floor_unit}
@@ -851,7 +1066,9 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Street *</label>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            Street *
+                                                        </label>
                                                         <input
                                                             type="text"
                                                             value={data.street}
@@ -861,9 +1078,11 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                         />
                                                     </div>
                                                 </div>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                                <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Village/Subdivision</label>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            Village/Subdivision
+                                                        </label>
                                                         <input
                                                             type="text"
                                                             value={data.village_subdivision_condo}
@@ -873,7 +1092,9 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Barangay *</label>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            Barangay *
+                                                        </label>
                                                         <input
                                                             type="text"
                                                             value={data.barangay}
@@ -883,9 +1104,11 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                         />
                                                     </div>
                                                 </div>
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">City/Municipality *</label>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            City/Municipality *
+                                                        </label>
                                                         <input
                                                             type="text"
                                                             value={data.city_municipality}
@@ -895,7 +1118,9 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Province/State *</label>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            Province/State *
+                                                        </label>
                                                         <input
                                                             type="text"
                                                             value={data.province_state}
@@ -905,7 +1130,9 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">ZIP Code *</label>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            ZIP Code *
+                                                        </label>
                                                         <input
                                                             type="text"
                                                             value={data.zip_code}
@@ -922,9 +1149,11 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                         {currentStep === 4 && (
                                             <div>
                                                 <h3 className="mb-4 text-lg font-medium text-gray-900 dark:text-white">Employment Information</h3>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                                <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Occupation *</label>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            Occupation *
+                                                        </label>
                                                         <input
                                                             type="text"
                                                             value={data.occupation}
@@ -942,8 +1171,12 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                                 className="ml-1 text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
                                                                 onClick={() => setShowClassPopover(showClassPopover ? null : 'info')}
                                                             >
-                                                                <svg className="h-4 w-4 inline" fill="currentColor" viewBox="0 0 20 20">
-                                                                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                                                <svg className="inline h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                                                    <path
+                                                                        fillRule="evenodd"
+                                                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                                                        clipRule="evenodd"
+                                                                    />
                                                                 </svg>
                                                             </button>
                                                         </label>
@@ -963,16 +1196,27 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
 
                                                         {/* General Info Popover */}
                                                         {showClassPopover === 'info' && (
-                                                            <div className="absolute z-50 mt-2 w-80 rounded-lg bg-white p-4 shadow-lg ring-1 ring-black ring-opacity-5 dark:bg-gray-800 dark:ring-white dark:ring-opacity-10">
+                                                            <div className="ring-opacity-5 dark:ring-opacity-10 absolute z-50 mt-2 w-80 rounded-lg bg-white p-4 shadow-lg ring-1 ring-black dark:bg-gray-800 dark:ring-white">
                                                                 <div className="flex items-start justify-between">
                                                                     <div>
-                                                                        <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Occupational Classifications</h4>
+                                                                        <h4 className="mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                                                            Occupational Classifications
+                                                                        </h4>
                                                                         <div className="space-y-3 text-xs text-gray-600 dark:text-gray-300">
                                                                             {Object.entries(occupationalClasses).map(([key, classInfo]) => (
-                                                                                <div key={key} className="border-l-2 border-indigo-200 dark:border-indigo-600 pl-2">
-                                                                                    <div className="font-medium text-gray-900 dark:text-white">{classInfo.label}</div>
-                                                                                    <div className="text-gray-600 dark:text-gray-400 mb-1">{classInfo.description}</div>
-                                                                                    <div className="text-gray-500 dark:text-gray-500 text-xs">{classInfo.examples}</div>
+                                                                                <div
+                                                                                    key={key}
+                                                                                    className="border-l-2 border-indigo-200 pl-2 dark:border-indigo-600"
+                                                                                >
+                                                                                    <div className="font-medium text-gray-900 dark:text-white">
+                                                                                        {classInfo.label}
+                                                                                    </div>
+                                                                                    <div className="mb-1 text-gray-600 dark:text-gray-400">
+                                                                                        {classInfo.description}
+                                                                                    </div>
+                                                                                    <div className="text-xs text-gray-500 dark:text-gray-500">
+                                                                                        {classInfo.examples}
+                                                                                    </div>
                                                                                 </div>
                                                                             ))}
                                                                         </div>
@@ -982,8 +1226,18 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                                         className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
                                                                         onClick={() => setShowClassPopover(null)}
                                                                     >
-                                                                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                                        <svg
+                                                                            className="h-4 w-4"
+                                                                            fill="none"
+                                                                            stroke="currentColor"
+                                                                            viewBox="0 0 24 24"
+                                                                        >
+                                                                            <path
+                                                                                strokeLinecap="round"
+                                                                                strokeLinejoin="round"
+                                                                                strokeWidth={2}
+                                                                                d="M6 18L18 6M6 6l12 12"
+                                                                            />
                                                                         </svg>
                                                                     </button>
                                                                 </div>
@@ -991,9 +1245,11 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                         )}
                                                     </div>
                                                 </div>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                                <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Nature of Employment/Business</label>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            Nature of Employment/Business
+                                                        </label>
                                                         <input
                                                             type="text"
                                                             value={data.nature_of_employment_business}
@@ -1003,7 +1259,9 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Employer/Business Name</label>
+                                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            Employer/Business Name
+                                                        </label>
                                                         <input
                                                             type="text"
                                                             value={data.name_of_employer_business}
@@ -1014,7 +1272,9 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Employer/Business Address</label>
+                                                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                        Employer/Business Address
+                                                    </label>
                                                     <input
                                                         type="text"
                                                         value={data.employer_business_address}
@@ -1030,9 +1290,9 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                         {currentStep === 5 && (
                                             <div>
                                                 <h3 className="mb-4 text-lg font-medium text-gray-900 dark:text-white">Insurance Plan Selection</h3>
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                    <div className="border border-gray-300 rounded-lg p-4 hover:border-indigo-500 transition-colors">
-                                                        <label className="flex items-start cursor-pointer">
+                                                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                                                    <div className="rounded-lg border border-gray-300 p-4 transition-colors hover:border-indigo-500">
+                                                        <label className="flex cursor-pointer items-start">
                                                             <input
                                                                 type="radio"
                                                                 name="choice_of_plan"
@@ -1048,8 +1308,8 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                             </div>
                                                         </label>
                                                     </div>
-                                                    <div className="border border-gray-300 rounded-lg p-4 hover:border-indigo-500 transition-colors">
-                                                        <label className="flex items-start cursor-pointer">
+                                                    <div className="rounded-lg border border-gray-300 p-4 transition-colors hover:border-indigo-500">
+                                                        <label className="flex cursor-pointer items-start">
                                                             <input
                                                                 type="radio"
                                                                 name="choice_of_plan"
@@ -1061,12 +1321,14 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                             />
                                                             <div>
                                                                 <div className="font-medium text-gray-900 dark:text-white">Class II</div>
-                                                                <div className="text-sm text-gray-600 dark:text-gray-400">Principal Insured & Spouse/Parent</div>
+                                                                <div className="text-sm text-gray-600 dark:text-gray-400">
+                                                                    Principal Insured & Spouse/Parent
+                                                                </div>
                                                             </div>
                                                         </label>
                                                     </div>
-                                                    <div className="border border-gray-300 rounded-lg p-4 hover:border-indigo-500 transition-colors">
-                                                        <label className="flex items-start cursor-pointer">
+                                                    <div className="rounded-lg border border-gray-300 p-4 transition-colors hover:border-indigo-500">
+                                                        <label className="flex cursor-pointer items-start">
                                                             <input
                                                                 type="radio"
                                                                 name="choice_of_plan"
@@ -1078,7 +1340,9 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                             />
                                                             <div>
                                                                 <div className="font-medium text-gray-900 dark:text-white">Class III</div>
-                                                                <div className="text-sm text-gray-600 dark:text-gray-400">Principal Insured & Family</div>
+                                                                <div className="text-sm text-gray-600 dark:text-gray-400">
+                                                                    Principal Insured & Family
+                                                                </div>
                                                             </div>
                                                         </label>
                                                     </div>
@@ -1087,24 +1351,30 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                 {/* Family Information - Show only if Class II or III is selected */}
                                                 {(data.choice_of_plan === 'class_ii' || data.choice_of_plan === 'class_iii') && (
                                                     <div className="mt-6">
-                                                        <h4 className="mb-4 text-base font-medium text-gray-900 dark:text-white">Family Information</h4>
-                                                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 dark:bg-yellow-900/20 dark:border-yellow-800">
+                                                        <h4 className="mb-4 text-base font-medium text-gray-900 dark:text-white">
+                                                            Family Information
+                                                        </h4>
+                                                        <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/20">
                                                             <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                                                                Please provide information for your {data.choice_of_plan === 'class_ii' ? 'spouse or parent' : 'family members'} to be covered under this policy.
+                                                                Please provide information for your{' '}
+                                                                {data.choice_of_plan === 'class_ii' ? 'spouse or parent' : 'family members'} to be
+                                                                covered under this policy.
                                                             </p>
                                                         </div>
 
                                                         {/* Spouse/Parent Section - For both Class II and III */}
                                                         <div className="mb-6">
-                                                            <div className="flex items-center justify-between mb-3">
+                                                            <div className="mb-3 flex items-center justify-between">
                                                                 <h5 className="text-sm font-medium text-gray-900 dark:text-white">
                                                                     Spouse or Parent Information
                                                                 </h5>
                                                                 <span className="text-xs text-red-600 dark:text-red-400">Required</span>
                                                             </div>
-                                                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border border-gray-200 rounded-lg dark:border-gray-600">
+                                                            <div className="grid grid-cols-1 gap-4 rounded-lg border border-gray-200 p-4 md:grid-cols-4 dark:border-gray-600">
                                                                 <div>
-                                                                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Last Name</label>
+                                                                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                                        Last Name
+                                                                    </label>
                                                                     <input
                                                                         type="text"
                                                                         value={data.family_members[0]?.last_name || ''}
@@ -1118,7 +1388,9 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                                     />
                                                                 </div>
                                                                 <div>
-                                                                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">First Name</label>
+                                                                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                                        First Name
+                                                                    </label>
                                                                     <input
                                                                         type="text"
                                                                         value={data.family_members[0]?.first_name || ''}
@@ -1132,7 +1404,9 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                                     />
                                                                 </div>
                                                                 <div>
-                                                                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Relationship</label>
+                                                                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                                        Relationship
+                                                                    </label>
                                                                     <select
                                                                         value={data.family_members[0]?.relationship || ''}
                                                                         onChange={(e) => {
@@ -1148,7 +1422,9 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                                     </select>
                                                                 </div>
                                                                 <div>
-                                                                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Date of Birth</label>
+                                                                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                                        Date of Birth
+                                                                    </label>
                                                                     <input
                                                                         type="date"
                                                                         value={data.family_members[0]?.date_of_birth || ''}
@@ -1166,22 +1442,29 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                         {/* Children/Siblings Section - Only for Class III */}
                                                         {data.choice_of_plan === 'class_iii' && (
                                                             <div>
-                                                                <div className="flex justify-between items-center mb-3">
+                                                                <div className="mb-3 flex items-center justify-between">
                                                                     <div className="flex items-center gap-2">
-                                                                        <h5 className="text-sm font-medium text-gray-900 dark:text-white">Children or Siblings Information</h5>
-                                                                        <span className="text-xs text-red-600 dark:text-red-400">At least one required</span>
+                                                                        <h5 className="text-sm font-medium text-gray-900 dark:text-white">
+                                                                            Children or Siblings Information
+                                                                        </h5>
+                                                                        <span className="text-xs text-red-600 dark:text-red-400">
+                                                                            At least one required
+                                                                        </span>
                                                                     </div>
                                                                     <button
                                                                         type="button"
                                                                         onClick={addChildSibling}
-                                                                        className="text-sm text-indigo-600 hover:text-indigo-500 font-medium"
+                                                                        className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
                                                                     >
                                                                         + Add Another
                                                                     </button>
                                                                 </div>
                                                                 <div className="space-y-4">
                                                                     {data.children_siblings.map((child, index) => (
-                                                                        <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border border-gray-200 rounded-lg dark:border-gray-600 relative">
+                                                                        <div
+                                                                            key={index}
+                                                                            className="relative grid grid-cols-1 gap-4 rounded-lg border border-gray-200 p-4 md:grid-cols-4 dark:border-gray-600"
+                                                                        >
                                                                             {data.children_siblings.length > 1 && (
                                                                                 <button
                                                                                     type="button"
@@ -1193,20 +1476,28 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                                                 </button>
                                                                             )}
                                                                             <div>
-                                                                                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Full Name</label>
+                                                                                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                                                    Full Name
+                                                                                </label>
                                                                                 <input
                                                                                     type="text"
                                                                                     value={child.full_name}
-                                                                                    onChange={(e) => updateChildSibling(index, 'full_name', e.target.value)}
+                                                                                    onChange={(e) =>
+                                                                                        updateChildSibling(index, 'full_name', e.target.value)
+                                                                                    }
                                                                                     className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                                                                     placeholder="Enter full name (optional)"
                                                                                 />
                                                                             </div>
                                                                             <div>
-                                                                                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Relationship</label>
+                                                                                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                                                    Relationship
+                                                                                </label>
                                                                                 <select
                                                                                     value={child.relationship}
-                                                                                    onChange={(e) => updateChildSibling(index, 'relationship', e.target.value)}
+                                                                                    onChange={(e) =>
+                                                                                        updateChildSibling(index, 'relationship', e.target.value)
+                                                                                    }
                                                                                     className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                                                                 >
                                                                                     <option value="">Select relationship</option>
@@ -1215,20 +1506,32 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                                                 </select>
                                                                             </div>
                                                                             <div>
-                                                                                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Date of Birth</label>
+                                                                                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                                                    Date of Birth
+                                                                                </label>
                                                                                 <input
                                                                                     type="date"
                                                                                     value={child.date_of_birth}
-                                                                                    onChange={(e) => updateChildSibling(index, 'date_of_birth', e.target.value)}
+                                                                                    onChange={(e) =>
+                                                                                        updateChildSibling(index, 'date_of_birth', e.target.value)
+                                                                                    }
                                                                                     className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                                                                 />
                                                                             </div>
                                                                             <div>
-                                                                                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Occupation/Education</label>
+                                                                                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                                                    Occupation/Education
+                                                                                </label>
                                                                                 <input
                                                                                     type="text"
                                                                                     value={child.occupation_education}
-                                                                                    onChange={(e) => updateChildSibling(index, 'occupation_education', e.target.value)}
+                                                                                    onChange={(e) =>
+                                                                                        updateChildSibling(
+                                                                                            index,
+                                                                                            'occupation_education',
+                                                                                            e.target.value,
+                                                                                        )
+                                                                                    }
                                                                                     className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                                                                     placeholder="Occupation or education level"
                                                                                 />
@@ -1248,9 +1551,12 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                             <div>
                                                 <h3 className="mb-4 text-lg font-medium text-gray-900 dark:text-white">Legal Agreements</h3>
                                                 <div className="mb-6">
-                                                    <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Insurance Agreement</h4>
-                                                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 max-h-40 overflow-y-auto text-sm dark:bg-gray-800 dark:border-gray-600">
-                                                        <p className="mb-2">I HEREBY DECLARE and warrant the answers given above in every respect true and correct, and have not withheld any information likely to affect acceptance of this proposal.</p>
+                                                    <h4 className="mb-2 text-sm font-medium text-gray-900 dark:text-white">Insurance Agreement</h4>
+                                                    <div className="mb-4 max-h-40 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm dark:border-gray-600 dark:bg-gray-800">
+                                                        <p className="mb-2">
+                                                            I HEREBY DECLARE and warrant the answers given above in every respect true and correct,
+                                                            and have not withheld any information likely to affect acceptance of this proposal.
+                                                        </p>
                                                     </div>
                                                     <div className="flex items-start">
                                                         <input
@@ -1268,9 +1574,12 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                 </div>
 
                                                 <div>
-                                                    <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Data Privacy Consent</h4>
-                                                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 max-h-40 overflow-y-auto text-sm dark:bg-gray-800 dark:border-gray-600">
-                                                        <p className="mb-2">I acknowledge that FPG Insurance Co., Inc. may collect, use, process and share my personal information for legitimate business purposes.</p>
+                                                    <h4 className="mb-2 text-sm font-medium text-gray-900 dark:text-white">Data Privacy Consent</h4>
+                                                    <div className="mb-4 max-h-40 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm dark:border-gray-600 dark:bg-gray-800">
+                                                        <p className="mb-2">
+                                                            I acknowledge that FPG Insurance Co., Inc. may collect, use, process and share my personal
+                                                            information for legitimate business purposes.
+                                                        </p>
                                                     </div>
                                                     <div className="flex items-start">
                                                         <input
@@ -1295,7 +1604,7 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                                 type="button"
                                                 onClick={prevStep}
                                                 disabled={currentStep === 1}
-                                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+                                                className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
                                             >
                                                 Previous
                                             </button>
@@ -1303,14 +1612,13 @@ export default function CheckoutIndex({ cartItems, storeGroups, totalAmount, for
                                             <button
                                                 type="submit"
                                                 disabled={processing || isRedirecting || (currentStep < steps.length && !validateStep(currentStep))}
-                                                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                                className="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                             >
                                                 {processing
                                                     ? 'Processing...'
                                                     : currentStep === steps.length
-                                                    ? `Submit Application & Pay ${formattedTotal || '₱0.00'}`
-                                                    : 'Next'
-                                                }
+                                                      ? `Submit Application & Pay ${formattedTotal || '₱0.00'}`
+                                                      : 'Next'}
                                             </button>
                                         </div>
 
