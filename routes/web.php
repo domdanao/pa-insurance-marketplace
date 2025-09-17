@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 
 // Public routes
 Route::get('/', [App\Http\Controllers\StorefrontController::class, 'index'])->name('home');
+Route::get('/about', [App\Http\Controllers\StorefrontController::class, 'about'])->name('about');
+Route::get('/contact', [App\Http\Controllers\StorefrontController::class, 'contact'])->name('contact');
+Route::get('/help', [App\Http\Controllers\StorefrontController::class, 'help'])->name('help');
 
 // CSRF token endpoint
 Route::get('/csrf-token', function () {

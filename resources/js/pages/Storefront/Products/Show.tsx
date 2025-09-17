@@ -122,14 +122,6 @@ export default function ProductShow({ product, relatedProducts }: Props) {
                                 </span>
                                 <span>•</span>
                                 <span>Category: {product.category.name}</span>
-                                {product.digital_product && (
-                                    <>
-                                        <span>•</span>
-                                        <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                            Digital Product
-                                        </span>
-                                    </>
-                                )}
                             </div>
                         </div>
 
@@ -166,40 +158,72 @@ export default function ProductShow({ product, relatedProducts }: Props) {
                 {/* Related Products */}
                 {relatedProducts.length > 0 && (
                     <div className="mt-12">
-                        <h2 className="mb-6 text-2xl font-bold text-foreground">Related Products</h2>
-                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                        <h2 className="mb-6 text-2xl font-bold text-foreground">Other Options</h2>
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                             {relatedProducts.map((relatedProduct) => (
                                 <Link key={relatedProduct.id} href={`/products/${relatedProduct.slug}`} className="group">
-                                    <div className="aspect-square w-full overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
-                                        {relatedProduct.images && relatedProduct.images.length > 0 ? (
-                                            <img
-                                                src={relatedProduct.images[0]}
-                                                alt={relatedProduct.name}
-                                                className="h-full w-full object-cover group-hover:opacity-75"
-                                            />
-                                        ) : (
-                                            <div className="flex h-full w-full items-center justify-center">
-                                                <svg
-                                                    className="h-12 w-12 text-gray-300 dark:text-gray-600"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    viewBox="0 0 24 24"
-                                                >
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        strokeWidth={2}
-                                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                                    />
-                                                </svg>
+                                    <div className="flex items-center space-x-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
+                                        {/* Product Image */}
+                                        <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-700">
+                                            {relatedProduct.images && relatedProduct.images.length > 0 ? (
+                                                <img
+                                                    src={relatedProduct.images[0]}
+                                                    alt={relatedProduct.name}
+                                                    className="h-full w-full object-cover group-hover:opacity-75"
+                                                />
+                                            ) : (
+                                                <div className="flex h-full w-full items-center justify-center">
+                                                    <svg
+                                                        className="h-8 w-8 text-gray-300 dark:text-gray-600"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                        />
+                                                    </svg>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Product Info */}
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="text-lg font-medium text-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-400 truncate">
+                                                {relatedProduct.name}
+                                            </h3>
+                                            <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+                                                {relatedProduct.description}
+                                            </p>
+                                            <div className="mt-2 flex items-center justify-between">
+                                                <p className="text-lg font-semibold text-indigo-600 dark:text-indigo-400">
+                                                    {formatPrice(relatedProduct.price)}
+                                                </p>
+                                                <div className="flex items-center text-sm text-muted-foreground">
+                                                    <span>{relatedProduct.store.name}</span>
+                                                </div>
                                             </div>
-                                        )}
-                                    </div>
-                                    <div className="mt-4">
-                                        <h3 className="text-sm font-medium text-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
-                                            {relatedProduct.name}
-                                        </h3>
-                                        <p className="mt-1 text-sm font-semibold text-foreground">{formatPrice(relatedProduct.price)}</p>
+                                        </div>
+
+                                        {/* Arrow Icon */}
+                                        <div className="flex-shrink-0">
+                                            <svg
+                                                className="h-5 w-5 text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M9 5l7 7-7 7"
+                                                />
+                                            </svg>
+                                        </div>
                                     </div>
                                 </Link>
                             ))}

@@ -144,7 +144,7 @@ export default function StorefrontLayout({ children, header }: StorefrontLayoutP
             {/* Footer */}
             <footer className="border-t border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
                 <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+                    <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
                         <div>
                             <h3 className="text-sm font-semibold tracking-wider text-gray-900 uppercase dark:text-white">Company</h3>
                             <ul className="mt-4 space-y-4">
@@ -196,27 +196,6 @@ export default function StorefrontLayout({ children, header }: StorefrontLayoutP
                                         className="text-base text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                                     >
                                         Help Center
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link
-                                        href="/returns"
-                                        className="text-base text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                                    >
-                                        Returns
-                                    </Link>
-                                </li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 className="text-sm font-semibold tracking-wider text-gray-900 uppercase dark:text-white">Sell</h3>
-                            <ul className="mt-4 space-y-4">
-                                <li>
-                                    <Link
-                                        href="/register?role=merchant"
-                                        className="text-base text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                                    >
-                                        Become a Merchant
                                     </Link>
                                 </li>
                             </ul>

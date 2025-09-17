@@ -149,7 +149,7 @@ export default function CategoriesIndex({ categories }: Props) {
                             </div>
                             <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                                 <div>
-                                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                                    <p className="text-sm font-bold text-gray-700 dark:text-gray-300">
                                         Showing <span className="font-medium">{(categories.current_page - 1) * categories.per_page + 1}</span> to{' '}
                                         <span className="font-medium">
                                             {Math.min(categories.current_page * categories.per_page, categories.total)}

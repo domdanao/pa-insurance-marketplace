@@ -88,7 +88,8 @@ class StorefrontController extends Controller
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->with(['store'])
-            ->limit(4)
+            ->inRandomOrder()
+            ->limit(3)
             ->get();
 
         return Inertia::render('Storefront/Products/Show', [
@@ -142,5 +143,20 @@ class StorefrontController extends Controller
                 'search' => $request->search,
             ],
         ]);
+    }
+
+    public function about()
+    {
+        return Inertia::render('About');
+    }
+
+    public function contact()
+    {
+        return Inertia::render('Contact');
+    }
+
+    public function help()
+    {
+        return Inertia::render('Help');
     }
 }

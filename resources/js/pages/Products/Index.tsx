@@ -51,7 +51,7 @@ export default function ProductsIndex({ products }: Props) {
                         {/* Results Header */}
                         <div className="mb-6 flex items-center justify-between">
                             <div>
-                                <p className="text-gray-600 dark:text-gray-400">
+                                <p className="font-bold text-gray-600 dark:text-gray-200">
                                     Showing {products.data.length} of {products.total} products
                                 </p>
                             </div>

@@ -160,7 +160,7 @@ export default function StorefrontProductsIndex({ products, filters, cardLayout 
                     <div className="w-full">
                         {/* Sort Options */}
                         <div className="mb-6 flex items-center justify-between">
-                            <p className="text-sm text-gray-700 dark:text-gray-300">
+                            <p className="text-sm font-bold text-gray-700 dark:text-gray-300">
                                 Showing {products.data.length} of {products.total} products
                             </p>
                             <select
