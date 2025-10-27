@@ -15,9 +15,9 @@ class CreateAdminUser extends Command
      * @var string
      */
     protected $signature = 'admin:create
-                            {--name= : The name of the admin user}
-                            {--email= : The email of the admin user}
-                            {--password= : The password for the admin user}
+                            {name : The name of the admin user}
+                            {email : The email of the admin user}
+                            {password : The password for the admin user}
                             {--force : Skip confirmation prompt}';
 
     /**
@@ -32,9 +32,9 @@ class CreateAdminUser extends Command
      */
     public function handle(): int
     {
-        $name = $this->option('name') ?: $this->ask('What is the admin\'s name?');
-        $email = $this->option('email') ?: $this->ask('What is the admin\'s email?');
-        $password = $this->option('password') ?: $this->secret('What is the admin\'s password?');
+        $name = $this->argument('name');
+        $email = $this->argument('email');
+        $password = $this->argument('password');
 
         // Validate input
         $validator = Validator::make([
