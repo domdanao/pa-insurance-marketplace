@@ -1,26 +1,20 @@
 import RegisteredUserController from '@/actions/App/Http/Controllers/Auth/RegisteredUserController';
 import { login } from '@/routes';
 import { Form, Head } from '@inertiajs/react';
-import { LoaderCircle, Plus, Trash2, ChevronLeft, ChevronRight, Check } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Check, ChevronLeft, ChevronRight, LoaderCircle, Plus, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 import FlashMessages from '@/components/FlashMessages';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
+import { ToastContainer } from '@/components/toast-container';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import AuthWideLayout from '@/layouts/auth-wide-layout';
-import { ToastContainer } from '@/components/toast-container';
 import { useToast } from '@/hooks/use-toast';
+import AuthWideLayout from '@/layouts/auth-wide-layout';
 
 interface RegisterMerchantProps {
     flash?: {
@@ -64,22 +58,31 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
     const [userEmail, setUserEmail] = useState('');
 
     const [officers, setOfficers] = useState<Officer[]>([
-        { name: '', position: '', id_type: '', id_number: '', date_of_birth: '', nationality: 'Filipino', address: '' }
+        { name: '', position: '', id_type: '', id_number: '', date_of_birth: '', nationality: 'Filipino', address: '' },
     ]);
 
     const [beneficialOwners, setBeneficialOwners] = useState<BeneficialOwner[]>([
-        { name: '', ownership_percentage: '', id_type: '', id_number: '', date_of_birth: '', nationality: 'Filipino', address: '', is_politically_exposed: false }
+        {
+            name: '',
+            ownership_percentage: '',
+            id_type: '',
+            id_number: '',
+            date_of_birth: '',
+            nationality: 'Filipino',
+            address: '',
+            is_politically_exposed: false,
+        },
     ]);
 
     // Store form data in React state to handle multi-step form properly
     const [formData, setFormData] = useState<Record<string, any>>({});
 
     const steps = [
-        { number: 1, title: "Email Verification", description: "Verify your email address" },
-        { number: 2, title: "Basic Information", description: "Personal, business, and contact details" },
-        { number: 3, title: "Company Officers", description: "Key company officers and directors" },
-        { number: 4, title: "Beneficial Owners", description: "Ultimate beneficial owners (25%+ ownership)" },
-        { number: 5, title: "Banking & Documents", description: "Banking info and required documents" }
+        { number: 1, title: 'Email Verification', description: 'Verify your email address' },
+        { number: 2, title: 'Basic Information', description: 'Personal, business, and contact details' },
+        { number: 3, title: 'Company Officers', description: 'Key company officers and directors' },
+        { number: 4, title: 'Beneficial Owners', description: 'Ultimate beneficial owners (25%+ ownership)' },
+        { number: 5, title: 'Banking & Documents', description: 'Banking info and required documents' },
     ];
 
     const addOfficer = () => {
@@ -99,7 +102,19 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
     };
 
     const addBeneficialOwner = () => {
-        setBeneficialOwners([...beneficialOwners, { name: '', ownership_percentage: '', id_type: '', id_number: '', date_of_birth: '', nationality: 'Filipino', address: '', is_politically_exposed: false }]);
+        setBeneficialOwners([
+            ...beneficialOwners,
+            {
+                name: '',
+                ownership_percentage: '',
+                id_type: '',
+                id_number: '',
+                date_of_birth: '',
+                nationality: 'Filipino',
+                address: '',
+                is_politically_exposed: false,
+            },
+        ]);
     };
 
     const removeBeneficialOwner = (index: number) => {
@@ -124,7 +139,7 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
         if (!email) {
             toast({
                 variant: 'warning',
-                description: 'Please enter your email address first'
+                description: 'Please enter your email address first',
             });
             return;
         }
@@ -144,19 +159,19 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
                 setIsOtpSent(true);
                 toast({
                     variant: 'info',
-                    description: 'OTP sent to your email address. Please check your inbox.'
+                    description: 'OTP sent to your email address. Please check your inbox.',
                 });
             } else {
                 toast({
                     variant: 'error',
-                    description: 'Failed to send OTP. Please try again.'
+                    description: 'Failed to send OTP. Please try again.',
                 });
             }
         } catch (error) {
             console.error('OTP send error:', error);
             toast({
                 variant: 'error',
-                description: 'Failed to send OTP. Please try again.'
+                description: 'Failed to send OTP. Please try again.',
             });
         } finally {
             setOtpLoading(false);
@@ -173,7 +188,7 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
         if (!email || !otp) {
             toast({
                 variant: 'warning',
-                description: 'Please enter the OTP code'
+                description: 'Please enter the OTP code',
             });
             return;
         }
@@ -194,14 +209,14 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
                 setUserEmail(email); // Store the email for later use
                 toast({
                     variant: 'success',
-                    description: 'Email verified successfully!'
+                    description: 'Email verified successfully!',
                 });
                 // Try to load existing draft for this email
                 await loadDraft(email);
             } else {
                 toast({
                     variant: 'error',
-                    description: 'Invalid OTP code. Please try again.'
+                    description: 'Invalid OTP code. Please try again.',
                 });
                 setOtp('');
             }
@@ -209,7 +224,7 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
             console.error('OTP verification error:', error);
             toast({
                 variant: 'error',
-                description: 'Failed to verify OTP. Please try again.'
+                description: 'Failed to verify OTP. Please try again.',
             });
         } finally {
             setOtpLoading(false);
@@ -251,7 +266,7 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
 
                 // Handle checkboxes separately (they won't appear in FormData if unchecked)
                 const checkboxes = form.querySelectorAll('input[type="checkbox"]');
-                checkboxes.forEach(checkbox => {
+                checkboxes.forEach((checkbox) => {
                     const input = checkbox as HTMLInputElement;
                     if (input.name && !input.name.startsWith('officers[') && !input.name.startsWith('beneficial_owners[')) {
                         // Separate banking checkboxes from regular form data
@@ -348,7 +363,7 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
                 // Merge form_data and banking_info for DOM population
                 const combinedFormData = {
                     ...(draft.form_data || {}),
-                    ...(draft.banking_info || {})
+                    ...(draft.banking_info || {}),
                 };
 
                 // Store form data in React state - useEffect will handle DOM population
@@ -365,9 +380,10 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
 
         if (!validation.isValid) {
             const missingFields = validation.missingFields || [];
-            const fieldsList = missingFields.length > 3
-                ? `${missingFields.slice(0, 3).join(', ')} and ${missingFields.length - 3} more fields`
-                : missingFields.join(', ');
+            const fieldsList =
+                missingFields.length > 3
+                    ? `${missingFields.slice(0, 3).join(', ')} and ${missingFields.length - 3} more fields`
+                    : missingFields.join(', ');
 
             toast({
                 variant: 'error',
@@ -440,14 +456,23 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
     // Form validation for each step
     const validateStep2 = (formData?: FormData): boolean => {
         const requiredFields = [
-            'name', 'business_name', 'business_type', 'tax_id', 'business_description',
-            'phone', 'address_line_1', 'city', 'state', 'postal_code', 'country'
+            'name',
+            'business_name',
+            'business_type',
+            'tax_id',
+            'business_description',
+            'phone',
+            'address_line_1',
+            'city',
+            'state',
+            'postal_code',
+            'country',
         ];
 
         console.log('Validating Step 2...');
 
         const missingFields: string[] = [];
-        const validationResults = requiredFields.map(field => {
+        const validationResults = requiredFields.map((field) => {
             // First try to get value from formData if provided
             let value = formData?.get(field)?.toString().trim();
 
@@ -465,7 +490,7 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
             return isValid;
         });
 
-        const allValid = validationResults.every(result => result);
+        const allValid = validationResults.every((result) => result);
         console.log('Missing fields:', missingFields);
         console.log('Step 2 validation result:', allValid);
 
@@ -473,36 +498,51 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
     };
 
     const validateStep3 = (): boolean => {
-        return officers.length > 0 && officers.every(officer =>
-            officer.name && officer.name.trim() &&
-            officer.position && officer.position.trim() &&
-            officer.id_type &&
-            officer.id_number && officer.id_number.trim() &&
-            officer.date_of_birth &&
-            officer.nationality && officer.nationality.trim() &&
-            officer.address && officer.address.trim()
+        return (
+            officers.length > 0 &&
+            officers.every(
+                (officer) =>
+                    officer.name &&
+                    officer.name.trim() &&
+                    officer.position &&
+                    officer.position.trim() &&
+                    officer.id_type &&
+                    officer.id_number &&
+                    officer.id_number.trim() &&
+                    officer.date_of_birth &&
+                    officer.nationality &&
+                    officer.nationality.trim() &&
+                    officer.address &&
+                    officer.address.trim(),
+            )
         );
     };
 
     const validateStep4 = (): boolean => {
-        return beneficialOwners.length > 0 && beneficialOwners.every(owner =>
-            owner.name && owner.name.trim() &&
-            owner.ownership_percentage &&
-            parseFloat(owner.ownership_percentage) >= 25 &&
-            owner.id_type &&
-            owner.id_number && owner.id_number.trim() &&
-            owner.date_of_birth &&
-            owner.nationality && owner.nationality.trim() &&
-            owner.address && owner.address.trim()
+        return (
+            beneficialOwners.length > 0 &&
+            beneficialOwners.every(
+                (owner) =>
+                    owner.name &&
+                    owner.name.trim() &&
+                    owner.ownership_percentage &&
+                    parseFloat(owner.ownership_percentage) >= 25 &&
+                    owner.id_type &&
+                    owner.id_number &&
+                    owner.id_number.trim() &&
+                    owner.date_of_birth &&
+                    owner.nationality &&
+                    owner.nationality.trim() &&
+                    owner.address &&
+                    owner.address.trim(),
+            )
         );
     };
 
     const validateStep5 = (formData?: FormData): boolean => {
-        const requiredFields = [
-            'bank_account_holder', 'bank_name', 'bank_account_number', 'bank_routing_number'
-        ];
+        const requiredFields = ['bank_account_holder', 'bank_name', 'bank_account_number', 'bank_routing_number'];
 
-        return requiredFields.every(field => {
+        return requiredFields.every((field) => {
             // First try to get value from formData if provided
             let value = formData?.get(field)?.toString().trim();
 
@@ -529,7 +569,7 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
             { field: 'city', label: 'City' },
             { field: 'state', label: 'State/Province' },
             { field: 'postal_code', label: 'Postal Code' },
-            { field: 'country', label: 'Country' }
+            { field: 'country', label: 'Country' },
         ];
 
         const missingFields: string[] = [];
@@ -595,7 +635,7 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
             { field: 'bank_account_holder', label: 'Bank Account Holder' },
             { field: 'bank_name', label: 'Bank Name' },
             { field: 'bank_account_number', label: 'Bank Account Number' },
-            { field: 'bank_routing_number', label: 'Bank Routing Number' }
+            { field: 'bank_routing_number', label: 'Bank Routing Number' },
         ];
 
         const missingFields: string[] = [];
@@ -666,9 +706,15 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
                 }
             });
 
-            console.log(`✅ Populated ${visibleFields.length} visible fields:`, visibleFields.map(f => f.key));
+            console.log(
+                `✅ Populated ${visibleFields.length} visible fields:`,
+                visibleFields.map((f) => f.key),
+            );
             if (hiddenFields.length > 0) {
-                console.log(`ℹ️  ${hiddenFields.length} fields stored but not visible on this step:`, hiddenFields.map(f => f.key));
+                console.log(
+                    `ℹ️  ${hiddenFields.length} fields stored but not visible on this step:`,
+                    hiddenFields.map((f) => f.key),
+                );
             }
             console.log('🎯 Field population completed');
         }, 100);
@@ -707,7 +753,7 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
             const inputs = form.querySelectorAll('input, textarea, select');
             const cleanup: Array<() => void> = [];
 
-            inputs.forEach(input => {
+            inputs.forEach((input) => {
                 let timeoutId: NodeJS.Timeout;
 
                 const debouncedSave = () => {
@@ -727,7 +773,7 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
                 });
             });
 
-            return () => cleanup.forEach(fn => fn());
+            return () => cleanup.forEach((fn) => fn());
         }
     }, [currentStep, isOtpVerified]);
 
@@ -747,15 +793,11 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
     }, []);
 
     return (
-        <AuthWideLayout
-            title="Register as Merchant"
-            description="Complete your business information to join our marketplace"
-        >
+        <AuthWideLayout title="Register as Merchant" description="Complete your business information to join our marketplace">
             <Head title="Merchant Registration" />
             <ToastContainer toasts={toasts} removeToast={removeToast} />
 
             <FlashMessages flash={flash} />
-
 
             {/* Step Progress Indicator */}
             <div className="mb-8">
@@ -769,30 +811,30 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
                                 onClick={() => goToStep(step.number)}
                             >
                                 <div
-                                    className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-colors ${
+                                    className={`flex h-8 w-8 items-center justify-center rounded-full border-2 transition-colors ${
                                         currentStep > step.number
-                                            ? 'bg-green-600 border-green-600 text-white'
+                                            ? 'border-green-600 bg-green-600 text-white'
                                             : currentStep === step.number
-                                                ? 'bg-blue-600 border-blue-600 text-white'
-                                                : 'border-gray-300 text-gray-500'
+                                              ? 'border-blue-600 bg-blue-600 text-white'
+                                              : 'border-gray-300 text-gray-500'
                                     }`}
                                 >
                                     {currentStep > step.number ? (
-                                        <Check className="w-5 h-5" />
+                                        <Check className="h-5 w-5" />
                                     ) : (
                                         <span className="text-sm font-bold">{step.number}</span>
                                     )}
                                 </div>
-                                <p className={`mt-2 text-xs font-medium max-w-20 ${
-                                    currentStep >= step.number ? 'text-gray-900 dark:text-white' : 'text-gray-500'
-                                }`}>
+                                <p
+                                    className={`mt-2 max-w-20 text-xs font-medium ${
+                                        currentStep >= step.number ? 'text-gray-900 dark:text-white' : 'text-gray-500'
+                                    }`}
+                                >
                                     {step.title}
                                 </p>
                             </div>
                             {index < steps.length - 1 && (
-                                <div className={`flex-1 h-0.5 mx-6 ${
-                                    currentStep > step.number ? 'bg-green-600' : 'bg-gray-300'
-                                }`} />
+                                <div className={`mx-6 h-0.5 flex-1 ${currentStep > step.number ? 'bg-green-600' : 'bg-gray-300'}`} />
                             )}
                         </div>
                     ))}
@@ -812,7 +854,7 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
                 onStart={() => {
                     console.log('🚀 Form submission started');
                 }}
-                className="flex flex-col gap-6 w-full max-w-none"
+                className="flex w-full max-w-none flex-col gap-6"
             >
                 {({ processing, errors }) => (
                     <>
@@ -824,7 +866,7 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
                             {currentStep === 1 && (
                                 <div className="space-y-6">
                                     <div className="text-center">
-                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Email Verification</h3>
+                                        <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">Email Verification</h3>
                                         <p className="text-sm text-muted-foreground">
                                             First, let's verify your email address to secure your merchant registration.
                                         </p>
@@ -853,7 +895,8 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
                                                             method: 'POST',
                                                             headers: {
                                                                 'Content-Type': 'application/json',
-                                                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                                                                'X-CSRF-TOKEN':
+                                                                    document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                                                             },
                                                             body: JSON.stringify({ email }),
                                                         });
@@ -871,7 +914,9 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
                                                             setUserEmail(email); // Store the email
                                                             setCurrentStep(draft.current_step);
                                                             setOfficers(draft.officers.length > 0 ? draft.officers : officers);
-                                                            setBeneficialOwners(draft.beneficial_owners.length > 0 ? draft.beneficial_owners : beneficialOwners);
+                                                            setBeneficialOwners(
+                                                                draft.beneficial_owners.length > 0 ? draft.beneficial_owners : beneficialOwners,
+                                                            );
 
                                                             // Store form data in React state - useEffect will handle DOM population
                                                             setFormData(draft.form_data || {});
@@ -902,20 +947,15 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
                                     {!isOtpVerified && (
                                         <>
                                             {!isOtpSent ? (
-                                                <div className="text-center space-y-4">
-                                                    <Button
-                                                        type="button"
-                                                        onClick={sendOtp}
-                                                        disabled={otpLoading}
-                                                        className="w-full"
-                                                    >
+                                                <div className="space-y-4 text-center">
+                                                    <Button type="button" onClick={sendOtp} disabled={otpLoading} className="w-full">
                                                         {otpLoading && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                                                         Send Verification Code
                                                     </Button>
                                                 </div>
                                             ) : (
                                                 <div className="space-y-4">
-                                                    <div className="bg-green-50 dark:bg-green-950 p-4 rounded-lg text-center">
+                                                    <div className="rounded-lg bg-green-50 p-4 text-center dark:bg-green-950">
                                                         <p className="text-sm text-green-800 dark:text-green-200">
                                                             Verification code sent! Please check your email and enter the code below.
                                                         </p>
@@ -949,7 +989,7 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
                                                             type="button"
                                                             onClick={sendOtp}
                                                             disabled={otpLoading}
-                                                            className="text-sm text-blue-600 hover:text-blue-800 underline"
+                                                            className="text-sm text-blue-600 underline hover:text-blue-800"
                                                         >
                                                             Resend Code
                                                         </button>
@@ -960,12 +1000,10 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
                                     )}
 
                                     {isOtpVerified && (
-                                        <div className="bg-green-50 dark:bg-green-950 p-4 rounded-lg text-center">
+                                        <div className="rounded-lg bg-green-50 p-4 text-center dark:bg-green-950">
                                             <div className="flex items-center justify-center space-x-2">
-                                                <Check className="w-5 h-5 text-green-600" />
-                                                <p className="text-sm font-medium text-green-800 dark:text-green-200">
-                                                    Email verified successfully!
-                                                </p>
+                                                <Check className="h-5 w-5 text-green-600" />
+                                                <p className="text-sm font-medium text-green-800 dark:text-green-200">Email verified successfully!</p>
                                             </div>
                                         </div>
                                     )}
@@ -977,549 +1015,468 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
                                 <div className="space-y-8">
                                     {/* Personal Information Section */}
                                     <div className="space-y-4">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Personal Information</h3>
+                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Personal Information</h3>
 
-                                <div className="space-y-6">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="name">Full Name</Label>
-                                        <Input
-                                            id="name"
-                                            type="text"
-                                            required
-                                            autoFocus
-                                            autoComplete="name"
-                                            name="name"
-                                            placeholder="Your full name"
-                                        />
-                                        <InputError message={errors.name} />
+                                        <div className="space-y-6">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="name">Full Name</Label>
+                                                <Input
+                                                    id="name"
+                                                    type="text"
+                                                    required
+                                                    autoFocus
+                                                    autoComplete="name"
+                                                    name="name"
+                                                    placeholder="Your full name"
+                                                />
+                                                <InputError message={errors.name} />
+                                            </div>
+
+                                            <div className="rounded-lg bg-blue-50 p-4 dark:bg-blue-950">
+                                                <p className="text-sm text-blue-800 dark:text-blue-200">
+                                                    <Check className="mr-2 inline h-4 w-4" />
+                                                    Email verified:{' '}
+                                                    {(() => {
+                                                        const form = document.querySelector('form') as HTMLFormElement;
+                                                        if (form) {
+                                                            const formData = new FormData(form);
+                                                            return (formData.get('email') as string) || 'your email address';
+                                                        }
+                                                        return 'your email address';
+                                                    })()}
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
-                                        <p className="text-sm text-blue-800 dark:text-blue-200">
-                                            <Check className="inline w-4 h-4 mr-2" />
-                                            Email verified: {(() => {
-                                                const form = document.querySelector('form') as HTMLFormElement;
-                                                if (form) {
-                                                    const formData = new FormData(form);
-                                                    return formData.get('email') as string || 'your email address';
-                                                }
-                                                return 'your email address';
-                                            })()}
-                                        </p>
+                                    {/* Business Information Section */}
+                                    <div className="space-y-4 border-t pt-6">
+                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Business Information</h3>
+
+                                        <div className="space-y-6">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="business_name">Business Name</Label>
+                                                <Input
+                                                    id="business_name"
+                                                    type="text"
+                                                    required
+                                                    name="business_name"
+                                                    placeholder="Your registered business name"
+                                                />
+                                                <InputError message={errors.business_name} />
+                                            </div>
+
+                                            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                                <div className="grid gap-2">
+                                                    <Label htmlFor="business_type">Business Type</Label>
+                                                    <select
+                                                        id="business_type"
+                                                        name="business_type"
+                                                        required
+                                                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                                    >
+                                                        <option value="">Select business type</option>
+                                                        <option value="sole_proprietorship">Sole Proprietorship</option>
+                                                        <option value="partnership">Partnership</option>
+                                                        <option value="corporation">Corporation</option>
+                                                        <option value="cooperative">Cooperative</option>
+                                                    </select>
+                                                    <InputError message={errors.business_type} />
+                                                </div>
+
+                                                <div className="grid gap-2">
+                                                    <Label htmlFor="tax_id">Tax ID (TIN/EIN)</Label>
+                                                    <Input
+                                                        id="tax_id"
+                                                        type="text"
+                                                        required
+                                                        name="tax_id"
+                                                        placeholder="Your BIR Tax Identification Number"
+                                                    />
+                                                    <InputError message={errors.tax_id} />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid gap-2 md:col-span-3">
+                                                <Label htmlFor="business_description">Business Description</Label>
+                                                <Textarea
+                                                    id="business_description"
+                                                    required
+                                                    name="business_description"
+                                                    placeholder="Describe your business activities and services"
+                                                    rows={4}
+                                                />
+                                                <InputError message={errors.business_description} />
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
 
-                            {/* Business Information Section */}
-                            <div className="space-y-4 border-t pt-6">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Business Information</h3>
+                                    {/* Contact Information Section */}
+                                    <div className="space-y-4 border-t pt-6">
+                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Contact Information</h3>
 
-                                <div className="space-y-6">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="business_name">Business Name</Label>
-                                        <Input
-                                            id="business_name"
-                                            type="text"
-                                            required
-                                            name="business_name"
-                                            placeholder="Your registered business name"
-                                        />
-                                        <InputError message={errors.business_name} />
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="grid gap-2">
-                                            <Label htmlFor="business_type">Business Type</Label>
-                                            <select
-                                                id="business_type"
-                                                name="business_type"
-                                                required
-                                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                                            >
-                                                <option value="">Select business type</option>
-                                                <option value="sole_proprietorship">Sole Proprietorship</option>
-                                                <option value="partnership">Partnership</option>
-                                                <option value="corporation">Corporation</option>
-                                                <option value="cooperative">Cooperative</option>
-                                            </select>
-                                            <InputError message={errors.business_type} />
+                                            <Label htmlFor="phone">Business Phone</Label>
+                                            <Input id="phone" type="tel" required name="phone" placeholder="+63 XXX XXX XXXX" />
+                                            <InputError message={errors.phone} />
                                         </div>
 
                                         <div className="grid gap-2">
-                                            <Label htmlFor="tax_id">Tax ID (TIN/EIN)</Label>
+                                            <Label htmlFor="website">Website (Optional)</Label>
+                                            <Input id="website" type="url" name="website" placeholder="https://yourbusiness.com" />
+                                            <InputError message={errors.website} />
+                                        </div>
+                                    </div>
+
+                                    {/* Business Address Section */}
+                                    <div className="space-y-4 border-t pt-6">
+                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Business Address</h3>
+
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="address_line_1">Address Line 1</Label>
                                             <Input
-                                                id="tax_id"
+                                                id="address_line_1"
                                                 type="text"
                                                 required
-                                                name="tax_id"
-                                                placeholder="Your BIR Tax Identification Number"
+                                                name="address_line_1"
+                                                placeholder="Street address, building number"
                                             />
-                                            <InputError message={errors.tax_id} />
+                                            <InputError message={errors.address_line_1} />
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="address_line_2">Address Line 2 (Optional)</Label>
+                                            <Input
+                                                id="address_line_2"
+                                                type="text"
+                                                name="address_line_2"
+                                                placeholder="Apartment, suite, floor, etc."
+                                            />
+                                            <InputError message={errors.address_line_2} />
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="city">City</Label>
+                                                <Input id="city" type="text" required name="city" placeholder="City" />
+                                                <InputError message={errors.city} />
+                                            </div>
+
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="state">Province/State</Label>
+                                                <Input id="state" type="text" required name="state" placeholder="Province or State" />
+                                                <InputError message={errors.state} />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="postal_code">Postal Code</Label>
+                                                <Input id="postal_code" type="text" required name="postal_code" placeholder="Postal/ZIP Code" />
+                                                <InputError message={errors.postal_code} />
+                                            </div>
+
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="country">Country</Label>
+                                                <Input
+                                                    id="country"
+                                                    type="text"
+                                                    required
+                                                    name="country"
+                                                    defaultValue="Philippines"
+                                                    placeholder="Country"
+                                                />
+                                                <InputError message={errors.country} />
+                                            </div>
                                         </div>
                                     </div>
-
-                                    <div className="grid gap-2 md:col-span-3">
-                                        <Label htmlFor="business_description">Business Description</Label>
-                                        <Textarea
-                                            id="business_description"
-                                            required
-                                            name="business_description"
-                                            placeholder="Describe your business activities and services"
-                                            rows={4}
-                                        />
-                                        <InputError message={errors.business_description} />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Contact Information Section */}
-                            <div className="space-y-4 border-t pt-6">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Contact Information</h3>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="phone">Business Phone</Label>
-                                    <Input
-                                        id="phone"
-                                        type="tel"
-                                        required
-                                        name="phone"
-                                        placeholder="+63 XXX XXX XXXX"
-                                    />
-                                    <InputError message={errors.phone} />
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="website">Website (Optional)</Label>
-                                    <Input
-                                        id="website"
-                                        type="url"
-                                        name="website"
-                                        placeholder="https://yourbusiness.com"
-                                    />
-                                    <InputError message={errors.website} />
-                                </div>
-                            </div>
-
-                            {/* Business Address Section */}
-                            <div className="space-y-4 border-t pt-6">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Business Address</h3>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="address_line_1">Address Line 1</Label>
-                                    <Input
-                                        id="address_line_1"
-                                        type="text"
-                                        required
-                                        name="address_line_1"
-                                        placeholder="Street address, building number"
-                                    />
-                                    <InputError message={errors.address_line_1} />
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="address_line_2">Address Line 2 (Optional)</Label>
-                                    <Input
-                                        id="address_line_2"
-                                        type="text"
-                                        name="address_line_2"
-                                        placeholder="Apartment, suite, floor, etc."
-                                    />
-                                    <InputError message={errors.address_line_2} />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="city">City</Label>
-                                        <Input
-                                            id="city"
-                                            type="text"
-                                            required
-                                            name="city"
-                                            placeholder="City"
-                                        />
-                                        <InputError message={errors.city} />
-                                    </div>
-
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="state">Province/State</Label>
-                                        <Input
-                                            id="state"
-                                            type="text"
-                                            required
-                                            name="state"
-                                            placeholder="Province or State"
-                                        />
-                                        <InputError message={errors.state} />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="postal_code">Postal Code</Label>
-                                        <Input
-                                            id="postal_code"
-                                            type="text"
-                                            required
-                                            name="postal_code"
-                                            placeholder="Postal/ZIP Code"
-                                        />
-                                        <InputError message={errors.postal_code} />
-                                    </div>
-
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="country">Country</Label>
-                                        <Input
-                                            id="country"
-                                            type="text"
-                                            required
-                                            name="country"
-                                            defaultValue="Philippines"
-                                            placeholder="Country"
-                                        />
-                                        <InputError message={errors.country} />
-                                    </div>
-                                </div>
-                            </div>
-
                                 </div>
                             )}
 
                             {/* Step 3: Company Officers */}
                             {currentStep === 3 && (
                                 <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Company Officers</h3>
-                                        <p className="text-sm text-muted-foreground">
-                                            Provide information about key company officers (CEO, President, Directors, etc.)
-                                        </p>
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Company Officers</h3>
+                                            <p className="text-sm text-muted-foreground">
+                                                Provide information about key company officers (CEO, President, Directors, etc.)
+                                            </p>
+                                        </div>
+                                        <Button type="button" variant="outline" size="sm" onClick={addOfficer}>
+                                            <Plus className="mr-1 h-4 w-4" />
+                                            Add Officer
+                                        </Button>
                                     </div>
-                                    <Button type="button" variant="outline" size="sm" onClick={addOfficer}>
-                                        <Plus className="w-4 h-4 mr-1" />
-                                        Add Officer
-                                    </Button>
-                                </div>
 
-                                {officers.map((officer, index) => (
-                                    <div key={index} className="border rounded-lg p-4 space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <h4 className="font-medium text-gray-900 dark:text-white">Officer {index + 1}</h4>
-                                            {officers.length > 1 && (
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => removeOfficer(index)}
-                                                    className="text-red-600 hover:text-red-700"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </Button>
-                                            )}
-                                        </div>
+                                    {officers.map((officer, index) => (
+                                        <div key={index} className="space-y-4 rounded-lg border p-4">
+                                            <div className="flex items-center justify-between">
+                                                <h4 className="font-medium text-gray-900 dark:text-white">Officer {index + 1}</h4>
+                                                {officers.length > 1 && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => removeOfficer(index)}
+                                                        className="text-red-600 hover:text-red-700"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                )}
+                                            </div>
 
-                                        <input
-                                            type="hidden"
-                                            name={`officers[${index}][name]`}
-                                            value={officer.name}
-                                        />
-                                        <input
-                                            type="hidden"
-                                            name={`officers[${index}][position]`}
-                                            value={officer.position}
-                                        />
-                                        <input
-                                            type="hidden"
-                                            name={`officers[${index}][id_type]`}
-                                            value={officer.id_type}
-                                        />
-                                        <input
-                                            type="hidden"
-                                            name={`officers[${index}][id_number]`}
-                                            value={officer.id_number}
-                                        />
-                                        <input
-                                            type="hidden"
-                                            name={`officers[${index}][date_of_birth]`}
-                                            value={officer.date_of_birth}
-                                        />
-                                        <input
-                                            type="hidden"
-                                            name={`officers[${index}][nationality]`}
-                                            value={officer.nationality}
-                                        />
-                                        <input
-                                            type="hidden"
-                                            name={`officers[${index}][address]`}
-                                            value={officer.address}
-                                        />
+                                            <input type="hidden" name={`officers[${index}][name]`} value={officer.name} />
+                                            <input type="hidden" name={`officers[${index}][position]`} value={officer.position} />
+                                            <input type="hidden" name={`officers[${index}][id_type]`} value={officer.id_type} />
+                                            <input type="hidden" name={`officers[${index}][id_number]`} value={officer.id_number} />
+                                            <input type="hidden" name={`officers[${index}][date_of_birth]`} value={officer.date_of_birth} />
+                                            <input type="hidden" name={`officers[${index}][nationality]`} value={officer.nationality} />
+                                            <input type="hidden" name={`officers[${index}][address]`} value={officer.address} />
 
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="grid gap-2">
-                                                <Label>Full Name</Label>
-                                                <Input
-                                                    type="text"
-                                                    required
-                                                    value={officer.name}
-                                                    onChange={(e) => updateOfficer(index, 'name', e.target.value)}
-                                                    placeholder="Officer's full name"
-                                                />
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid gap-2">
+                                                    <Label>Full Name</Label>
+                                                    <Input
+                                                        type="text"
+                                                        required
+                                                        value={officer.name}
+                                                        onChange={(e) => updateOfficer(index, 'name', e.target.value)}
+                                                        placeholder="Officer's full name"
+                                                    />
+                                                </div>
+                                                <div className="grid gap-2">
+                                                    <Label>Position</Label>
+                                                    <Input
+                                                        type="text"
+                                                        required
+                                                        value={officer.position}
+                                                        onChange={(e) => updateOfficer(index, 'position', e.target.value)}
+                                                        placeholder="e.g., CEO, President, Director"
+                                                    />
+                                                </div>
                                             </div>
-                                            <div className="grid gap-2">
-                                                <Label>Position</Label>
-                                                <Input
-                                                    type="text"
-                                                    required
-                                                    value={officer.position}
-                                                    onChange={(e) => updateOfficer(index, 'position', e.target.value)}
-                                                    placeholder="e.g., CEO, President, Director"
-                                                />
-                                            </div>
-                                        </div>
 
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="grid gap-2">
-                                                <Label>ID Type</Label>
-                                                <select
-                                                    required
-                                                    value={officer.id_type}
-                                                    onChange={(e) => updateOfficer(index, 'id_type', e.target.value)}
-                                                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                                                >
-                                                    <option value="">Select ID type</option>
-                                                    <option value="passport">Passport</option>
-                                                    <option value="drivers_license">Driver's License</option>
-                                                    <option value="sss_id">SSS ID</option>
-                                                    <option value="philhealth_id">PhilHealth ID</option>
-                                                    <option value="postal_id">Postal ID</option>
-                                                    <option value="voters_id">Voter's ID</option>
-                                                    <option value="prc_id">PRC ID</option>
-                                                </select>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid gap-2">
+                                                    <Label>ID Type</Label>
+                                                    <select
+                                                        required
+                                                        value={officer.id_type}
+                                                        onChange={(e) => updateOfficer(index, 'id_type', e.target.value)}
+                                                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                                    >
+                                                        <option value="">Select ID type</option>
+                                                        <option value="passport">Passport</option>
+                                                        <option value="drivers_license">Driver's License</option>
+                                                        <option value="sss_id">SSS ID</option>
+                                                        <option value="philhealth_id">PhilHealth ID</option>
+                                                        <option value="postal_id">Postal ID</option>
+                                                        <option value="voters_id">Voter's ID</option>
+                                                        <option value="prc_id">PRC ID</option>
+                                                    </select>
+                                                </div>
+                                                <div className="grid gap-2">
+                                                    <Label>ID Number</Label>
+                                                    <Input
+                                                        type="text"
+                                                        required
+                                                        value={officer.id_number}
+                                                        onChange={(e) => updateOfficer(index, 'id_number', e.target.value)}
+                                                        placeholder="ID number"
+                                                    />
+                                                </div>
                                             </div>
-                                            <div className="grid gap-2">
-                                                <Label>ID Number</Label>
-                                                <Input
-                                                    type="text"
-                                                    required
-                                                    value={officer.id_number}
-                                                    onChange={(e) => updateOfficer(index, 'id_number', e.target.value)}
-                                                    placeholder="ID number"
-                                                />
-                                            </div>
-                                        </div>
 
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="grid gap-2">
-                                                <Label>Date of Birth</Label>
-                                                <Input
-                                                    type="date"
-                                                    required
-                                                    value={officer.date_of_birth}
-                                                    onChange={(e) => updateOfficer(index, 'date_of_birth', e.target.value)}
-                                                />
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid gap-2">
+                                                    <Label>Date of Birth</Label>
+                                                    <Input
+                                                        type="date"
+                                                        required
+                                                        value={officer.date_of_birth}
+                                                        onChange={(e) => updateOfficer(index, 'date_of_birth', e.target.value)}
+                                                    />
+                                                </div>
+                                                <div className="grid gap-2">
+                                                    <Label>Nationality</Label>
+                                                    <Input
+                                                        type="text"
+                                                        required
+                                                        value={officer.nationality}
+                                                        onChange={(e) => updateOfficer(index, 'nationality', e.target.value)}
+                                                    />
+                                                </div>
                                             </div>
+
                                             <div className="grid gap-2">
-                                                <Label>Nationality</Label>
-                                                <Input
-                                                    type="text"
+                                                <Label>Address</Label>
+                                                <Textarea
                                                     required
-                                                    value={officer.nationality}
-                                                    onChange={(e) => updateOfficer(index, 'nationality', e.target.value)}
+                                                    value={officer.address}
+                                                    onChange={(e) => updateOfficer(index, 'address', e.target.value)}
+                                                    placeholder="Officer's current address"
+                                                    rows={2}
                                                 />
                                             </div>
                                         </div>
-
-                                        <div className="grid gap-2">
-                                            <Label>Address</Label>
-                                            <Textarea
-                                                required
-                                                value={officer.address}
-                                                onChange={(e) => updateOfficer(index, 'address', e.target.value)}
-                                                placeholder="Officer's current address"
-                                                rows={2}
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
+                                    ))}
                                 </div>
                             )}
 
                             {/* Step 4: Beneficial Owners */}
                             {currentStep === 4 && (
                                 <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Beneficial Owners</h3>
-                                        <p className="text-sm text-muted-foreground">
-                                            Individuals who own 25% or more of the company (Ultimate Beneficial Owners)
-                                        </p>
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Beneficial Owners</h3>
+                                            <p className="text-sm text-muted-foreground">
+                                                Individuals who own 25% or more of the company (Ultimate Beneficial Owners)
+                                            </p>
+                                        </div>
+                                        <Button type="button" variant="outline" size="sm" onClick={addBeneficialOwner}>
+                                            <Plus className="mr-1 h-4 w-4" />
+                                            Add Beneficial Owner
+                                        </Button>
                                     </div>
-                                    <Button type="button" variant="outline" size="sm" onClick={addBeneficialOwner}>
-                                        <Plus className="w-4 h-4 mr-1" />
-                                        Add Beneficial Owner
-                                    </Button>
-                                </div>
 
-                                {beneficialOwners.map((owner, index) => (
-                                    <div key={index} className="border rounded-lg p-4 space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <h4 className="font-medium text-gray-900 dark:text-white">Beneficial Owner {index + 1}</h4>
-                                            {beneficialOwners.length > 1 && (
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => removeBeneficialOwner(index)}
-                                                    className="text-red-600 hover:text-red-700"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </Button>
-                                            )}
-                                        </div>
-
-                                        <input
-                                            type="hidden"
-                                            name={`beneficial_owners[${index}][name]`}
-                                            value={owner.name}
-                                        />
-                                        <input
-                                            type="hidden"
-                                            name={`beneficial_owners[${index}][ownership_percentage]`}
-                                            value={owner.ownership_percentage}
-                                        />
-                                        <input
-                                            type="hidden"
-                                            name={`beneficial_owners[${index}][id_type]`}
-                                            value={owner.id_type}
-                                        />
-                                        <input
-                                            type="hidden"
-                                            name={`beneficial_owners[${index}][id_number]`}
-                                            value={owner.id_number}
-                                        />
-                                        <input
-                                            type="hidden"
-                                            name={`beneficial_owners[${index}][date_of_birth]`}
-                                            value={owner.date_of_birth}
-                                        />
-                                        <input
-                                            type="hidden"
-                                            name={`beneficial_owners[${index}][nationality]`}
-                                            value={owner.nationality}
-                                        />
-                                        <input
-                                            type="hidden"
-                                            name={`beneficial_owners[${index}][address]`}
-                                            value={owner.address}
-                                        />
-                                        <input
-                                            type="hidden"
-                                            name={`beneficial_owners[${index}][is_politically_exposed]`}
-                                            value={owner.is_politically_exposed ? '1' : '0'}
-                                        />
-
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="grid gap-2">
-                                                <Label>Full Name</Label>
-                                                <Input
-                                                    type="text"
-                                                    required
-                                                    value={owner.name}
-                                                    onChange={(e) => updateBeneficialOwner(index, 'name', e.target.value)}
-                                                    placeholder="Beneficial owner's full name"
-                                                />
+                                    {beneficialOwners.map((owner, index) => (
+                                        <div key={index} className="space-y-4 rounded-lg border p-4">
+                                            <div className="flex items-center justify-between">
+                                                <h4 className="font-medium text-gray-900 dark:text-white">Beneficial Owner {index + 1}</h4>
+                                                {beneficialOwners.length > 1 && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => removeBeneficialOwner(index)}
+                                                        className="text-red-600 hover:text-red-700"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                )}
                                             </div>
-                                            <div className="grid gap-2">
-                                                <Label>Ownership Percentage</Label>
-                                                <Input
-                                                    type="number"
-                                                    min="25"
-                                                    max="100"
-                                                    step="0.01"
-                                                    required
-                                                    value={owner.ownership_percentage}
-                                                    onChange={(e) => updateBeneficialOwner(index, 'ownership_percentage', e.target.value)}
-                                                    placeholder="e.g., 25.5"
-                                                />
-                                            </div>
-                                        </div>
 
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="grid gap-2">
-                                                <Label>ID Type</Label>
-                                                <select
-                                                    required
-                                                    value={owner.id_type}
-                                                    onChange={(e) => updateBeneficialOwner(index, 'id_type', e.target.value)}
-                                                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                                                >
-                                                    <option value="">Select ID type</option>
-                                                    <option value="passport">Passport</option>
-                                                    <option value="drivers_license">Driver's License</option>
-                                                    <option value="sss_id">SSS ID</option>
-                                                    <option value="philhealth_id">PhilHealth ID</option>
-                                                    <option value="postal_id">Postal ID</option>
-                                                    <option value="voters_id">Voter's ID</option>
-                                                    <option value="prc_id">PRC ID</option>
-                                                </select>
-                                            </div>
-                                            <div className="grid gap-2">
-                                                <Label>ID Number</Label>
-                                                <Input
-                                                    type="text"
-                                                    required
-                                                    value={owner.id_number}
-                                                    onChange={(e) => updateBeneficialOwner(index, 'id_number', e.target.value)}
-                                                    placeholder="ID number"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="grid gap-2">
-                                                <Label>Date of Birth</Label>
-                                                <Input
-                                                    type="date"
-                                                    required
-                                                    value={owner.date_of_birth}
-                                                    onChange={(e) => updateBeneficialOwner(index, 'date_of_birth', e.target.value)}
-                                                />
-                                            </div>
-                                            <div className="grid gap-2">
-                                                <Label>Nationality</Label>
-                                                <Input
-                                                    type="text"
-                                                    required
-                                                    value={owner.nationality}
-                                                    onChange={(e) => updateBeneficialOwner(index, 'nationality', e.target.value)}
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="grid gap-2">
-                                            <Label>Address</Label>
-                                            <Textarea
-                                                required
-                                                value={owner.address}
-                                                onChange={(e) => updateBeneficialOwner(index, 'address', e.target.value)}
-                                                placeholder="Beneficial owner's current address"
-                                                rows={2}
-                                            />
-                                        </div>
-
-                                        <div className="flex items-center space-x-2">
+                                            <input type="hidden" name={`beneficial_owners[${index}][name]`} value={owner.name} />
                                             <input
-                                                type="checkbox"
-                                                id={`politically_exposed_${index}`}
-                                                checked={owner.is_politically_exposed}
-                                                onChange={(e) => updateBeneficialOwner(index, 'is_politically_exposed', e.target.checked)}
-                                                className="rounded border-gray-300"
+                                                type="hidden"
+                                                name={`beneficial_owners[${index}][ownership_percentage]`}
+                                                value={owner.ownership_percentage}
                                             />
-                                            <Label htmlFor={`politically_exposed_${index}`} className="text-sm">
-                                                This person is a Politically Exposed Person (PEP) or related to one
-                                            </Label>
+                                            <input type="hidden" name={`beneficial_owners[${index}][id_type]`} value={owner.id_type} />
+                                            <input type="hidden" name={`beneficial_owners[${index}][id_number]`} value={owner.id_number} />
+                                            <input type="hidden" name={`beneficial_owners[${index}][date_of_birth]`} value={owner.date_of_birth} />
+                                            <input type="hidden" name={`beneficial_owners[${index}][nationality]`} value={owner.nationality} />
+                                            <input type="hidden" name={`beneficial_owners[${index}][address]`} value={owner.address} />
+                                            <input
+                                                type="hidden"
+                                                name={`beneficial_owners[${index}][is_politically_exposed]`}
+                                                value={owner.is_politically_exposed ? '1' : '0'}
+                                            />
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid gap-2">
+                                                    <Label>Full Name</Label>
+                                                    <Input
+                                                        type="text"
+                                                        required
+                                                        value={owner.name}
+                                                        onChange={(e) => updateBeneficialOwner(index, 'name', e.target.value)}
+                                                        placeholder="Beneficial owner's full name"
+                                                    />
+                                                </div>
+                                                <div className="grid gap-2">
+                                                    <Label>Ownership Percentage</Label>
+                                                    <Input
+                                                        type="number"
+                                                        min="25"
+                                                        max="100"
+                                                        step="0.01"
+                                                        required
+                                                        value={owner.ownership_percentage}
+                                                        onChange={(e) => updateBeneficialOwner(index, 'ownership_percentage', e.target.value)}
+                                                        placeholder="e.g., 25.5"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid gap-2">
+                                                    <Label>ID Type</Label>
+                                                    <select
+                                                        required
+                                                        value={owner.id_type}
+                                                        onChange={(e) => updateBeneficialOwner(index, 'id_type', e.target.value)}
+                                                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                                    >
+                                                        <option value="">Select ID type</option>
+                                                        <option value="passport">Passport</option>
+                                                        <option value="drivers_license">Driver's License</option>
+                                                        <option value="sss_id">SSS ID</option>
+                                                        <option value="philhealth_id">PhilHealth ID</option>
+                                                        <option value="postal_id">Postal ID</option>
+                                                        <option value="voters_id">Voter's ID</option>
+                                                        <option value="prc_id">PRC ID</option>
+                                                    </select>
+                                                </div>
+                                                <div className="grid gap-2">
+                                                    <Label>ID Number</Label>
+                                                    <Input
+                                                        type="text"
+                                                        required
+                                                        value={owner.id_number}
+                                                        onChange={(e) => updateBeneficialOwner(index, 'id_number', e.target.value)}
+                                                        placeholder="ID number"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid gap-2">
+                                                    <Label>Date of Birth</Label>
+                                                    <Input
+                                                        type="date"
+                                                        required
+                                                        value={owner.date_of_birth}
+                                                        onChange={(e) => updateBeneficialOwner(index, 'date_of_birth', e.target.value)}
+                                                    />
+                                                </div>
+                                                <div className="grid gap-2">
+                                                    <Label>Nationality</Label>
+                                                    <Input
+                                                        type="text"
+                                                        required
+                                                        value={owner.nationality}
+                                                        onChange={(e) => updateBeneficialOwner(index, 'nationality', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid gap-2">
+                                                <Label>Address</Label>
+                                                <Textarea
+                                                    required
+                                                    value={owner.address}
+                                                    onChange={(e) => updateBeneficialOwner(index, 'address', e.target.value)}
+                                                    placeholder="Beneficial owner's current address"
+                                                    rows={2}
+                                                />
+                                            </div>
+
+                                            <div className="flex items-center space-x-2">
+                                                <input
+                                                    type="checkbox"
+                                                    id={`politically_exposed_${index}`}
+                                                    checked={owner.is_politically_exposed}
+                                                    onChange={(e) => updateBeneficialOwner(index, 'is_politically_exposed', e.target.checked)}
+                                                    className="rounded border-gray-300"
+                                                />
+                                                <Label htmlFor={`politically_exposed_${index}`} className="text-sm">
+                                                    This person is a Politically Exposed Person (PEP) or related to one
+                                                </Label>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
                                 </div>
                             )}
 
@@ -1533,9 +1490,7 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
                                     {/* Banking Information Section */}
                                     <div className="space-y-4">
                                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Banking Information</h3>
-                                        <p className="text-sm text-muted-foreground">
-                                            Required for payment processing and payouts
-                                        </p>
+                                        <p className="text-sm text-muted-foreground">Required for payment processing and payouts</p>
 
                                         <div className="space-y-6">
                                             <div className="grid gap-2">
@@ -1552,17 +1507,11 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
 
                                             <div className="grid gap-2">
                                                 <Label htmlFor="bank_name">Bank Name</Label>
-                                                <Input
-                                                    id="bank_name"
-                                                    type="text"
-                                                    required
-                                                    name="bank_name"
-                                                    placeholder="Your bank's name"
-                                                />
+                                                <Input id="bank_name" type="text" required name="bank_name" placeholder="Your bank's name" />
                                                 <InputError message={errors.bank_name} />
                                             </div>
 
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                                 <div className="grid gap-2">
                                                     <Label htmlFor="bank_account_number">Account Number</Label>
                                                     <Input
@@ -1593,45 +1542,36 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
                                     {/* Required Documents Section */}
                                     <div className="space-y-4 border-t pt-6">
                                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Required Documents</h3>
-                                <p className="text-sm text-muted-foreground">
-                                    The following documents will be required after registration. You can upload them from your merchant dashboard.
-                                </p>
+                                        <p className="text-sm text-muted-foreground">
+                                            The following documents will be required after registration. You can upload them from your merchant
+                                            dashboard.
+                                        </p>
 
-                                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-md">
-                                    <ul className="text-sm space-y-2">
-                                        <li>• SEC/DTI Registration Certificate</li>
-                                        <li>• BIR Certificate of Registration</li>
-                                        <li>• Mayor's Permit / Business Permit</li>
-                                        <li>• Valid Government ID of Owner/Officers</li>
-                                        <li>• Bank Certificate</li>
-                                        <li>• Articles of Incorporation (if corporation)</li>
-                                    </ul>
+                                        <div className="rounded-md bg-gray-50 p-4 dark:bg-gray-800">
+                                            <ul className="space-y-2 text-sm">
+                                                <li>• SEC/DTI Registration Certificate</li>
+                                                <li>• BIR Certificate of Registration</li>
+                                                <li>• Mayor's Permit / Business Permit</li>
+                                                <li>• Valid Government ID of Owner/Officers</li>
+                                                <li>• Bank Certificate</li>
+                                                <li>• Articles of Incorporation (if corporation)</li>
+                                            </ul>
+                                        </div>
                                     </div>
-                                </div>
                                 </div>
                             )}
 
                             {/* Navigation Buttons */}
-                            <div className="flex justify-between mt-8">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={prevStep}
-                                    disabled={currentStep === 1}
-                                    className="flex items-center"
-                                >
-                                    <ChevronLeft className="w-4 h-4 mr-2" />
+                            <div className="mt-8 flex justify-between">
+                                <Button type="button" variant="outline" onClick={prevStep} disabled={currentStep === 1} className="flex items-center">
+                                    <ChevronLeft className="mr-2 h-4 w-4" />
                                     Previous
                                 </Button>
 
                                 {currentStep < totalSteps ? (
-                                    <Button
-                                        type="button"
-                                        onClick={nextStep}
-                                        className="flex items-center"
-                                    >
+                                    <Button type="button" onClick={nextStep} className="flex items-center">
                                         Next
-                                        <ChevronRight className="w-4 h-4 ml-2" />
+                                        <ChevronRight className="ml-2 h-4 w-4" />
                                     </Button>
                                 ) : (
                                     <Button type="submit" disabled={processing} className="flex items-center">
@@ -1643,17 +1583,7 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
                         </div>
 
                         <div className="text-center text-sm text-muted-foreground">
-                            Already have an account?{' '}
-                            <TextLink href={login()}>
-                                Log in
-                            </TextLink>
-                        </div>
-
-                        <div className="text-center text-sm text-muted-foreground">
-                            Want to register as a buyer instead?{' '}
-                            <TextLink href="/register">
-                                Register as Buyer
-                            </TextLink>
+                            Already have an account? <TextLink href={login()}>Log in</TextLink>
                         </div>
                     </>
                 )}
@@ -1664,23 +1594,20 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
-                                <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
+                                <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
                             </div>
                             Application Submitted Successfully!
                         </DialogTitle>
-                        <DialogDescription className="text-left space-y-3">
+                        <DialogDescription className="space-y-3 text-left">
+                            <p>Thank you for submitting your merchant registration application to PA Insurance Marketplace.</p>
                             <p>
-                                Thank you for submitting your merchant registration application to PA Insurance Marketplace.
+                                Your application has been received and is now under review by our team. We will evaluate your information and
+                                documentation to ensure compliance with our marketplace standards.
                             </p>
-                            <p>
-                                Your application has been received and is now under review by our team. We will evaluate your information and documentation to ensure compliance with our marketplace standards.
-                            </p>
-                            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                                <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                                    What happens next?
-                                </p>
-                                <ul className="text-sm text-blue-800 dark:text-blue-200 mt-2 space-y-1">
+                            <div className="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
+                                <p className="text-sm font-medium text-blue-900 dark:text-blue-100">What happens next?</p>
+                                <ul className="mt-2 space-y-1 text-sm text-blue-800 dark:text-blue-200">
                                     <li>• Our team will review your application within 3-5 business days</li>
                                     <li>• You will receive an email notification with the approval status</li>
                                     <li>• Once approved, you can start listing your insurance products</li>
@@ -1691,18 +1618,11 @@ export default function RegisterMerchant({ flash }: RegisterMerchantProps) {
                             </p>
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                        <Button
-                            onClick={() => window.location.href = '/merchant/dashboard'}
-                            className="flex-1"
-                        >
+                    <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                        <Button onClick={() => (window.location.href = '/merchant/dashboard')} className="flex-1">
                             Go to Dashboard
                         </Button>
-                        <Button
-                            variant="outline"
-                            onClick={() => setShowSuccessDialog(false)}
-                            className="flex-1"
-                        >
+                        <Button variant="outline" onClick={() => setShowSuccessDialog(false)} className="flex-1">
                             Close
                         </Button>
                     </div>
