@@ -2,16 +2,16 @@ import AuthenticatedSessionController from '@/actions/App/Http/Controllers/Auth/
 import FlashMessages from '@/components/FlashMessages';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
+import { ToastContainer } from '@/components/toast-container';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 import AuthLayout from '@/layouts/auth-layout';
 import { register } from '@/routes';
 import { Form, Head } from '@inertiajs/react';
 import { LoaderCircle, Mail } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { ToastContainer } from '@/components/toast-container';
+import { useState } from 'react';
 
 interface LoginProps {
     status?: string;
@@ -35,7 +35,7 @@ export default function Login({ status, flash }: LoginProps) {
         if (!userEmail) {
             toast({
                 variant: 'error',
-                description: 'Please enter your email address'
+                description: 'Please enter your email address',
             });
             return;
         }
@@ -55,20 +55,20 @@ export default function Login({ status, flash }: LoginProps) {
                 setIsOtpSent(true);
                 toast({
                     variant: 'success',
-                    description: 'Login code sent to your email'
+                    description: 'Login code sent to your email',
                 });
             } else {
                 const data = await response.json();
                 toast({
                     variant: 'error',
-                    description: data.message || 'Failed to send login code'
+                    description: data.message || 'Failed to send login code',
                 });
             }
         } catch (error) {
             console.error('Send OTP error:', error);
             toast({
                 variant: 'error',
-                description: 'Failed to send login code. Please try again.'
+                description: 'Failed to send login code. Please try again.',
             });
         } finally {
             setOtpLoading(false);
@@ -100,11 +100,7 @@ export default function Login({ status, flash }: LoginProps) {
                                 />
                             </div>
 
-                            <Button
-                                onClick={sendOtp}
-                                className="w-full"
-                                disabled={isOtpLoading || !userEmail}
-                            >
+                            <Button onClick={sendOtp} className="w-full" disabled={isOtpLoading || !userEmail}>
                                 {isOtpLoading && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                                 Send Login Code
                             </Button>
@@ -120,7 +116,7 @@ export default function Login({ status, flash }: LoginProps) {
                                     <input type="hidden" name="otp" value={otp} />
                                     <input type="hidden" name="passwordless_login" value="1" />
 
-                                    <div className="text-center mb-4">
+                                    <div className="mb-4 text-center">
                                         <Mail className="mx-auto h-12 w-12 text-green-500" />
                                         <h3 className="mt-2 text-lg font-semibold">Check your email</h3>
                                         <p className="text-sm text-muted-foreground">
@@ -138,16 +134,12 @@ export default function Login({ status, flash }: LoginProps) {
                                             placeholder="Enter 6-digit code"
                                             maxLength={6}
                                             autoFocus
-                                            className="text-center text-lg font-mono"
+                                            className="text-center font-mono text-lg"
                                         />
                                         <InputError message={errors.otp} />
                                     </div>
 
-                                    <Button
-                                        type="submit"
-                                        className="w-full"
-                                        disabled={processing || otp.length !== 6}
-                                    >
+                                    <Button type="submit" className="w-full" disabled={processing || otp.length !== 6}>
                                         {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                                         Log In
                                     </Button>
@@ -180,10 +172,7 @@ export default function Login({ status, flash }: LoginProps) {
                 )}
 
                 <div className="text-center text-sm text-muted-foreground">
-                    Want to sell on our marketplace?{' '}
-                    <TextLink href={`${register()}?role=merchant`}>
-                        Register as Merchant
-                    </TextLink>
+                    Want to sell on our marketplace? <TextLink href={register({ query: { role: 'merchant' } }).url}>Register as Merchant</TextLink>
                 </div>
             </div>
 

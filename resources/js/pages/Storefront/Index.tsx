@@ -1,4 +1,5 @@
 import StorefrontLayout from '@/layouts/StorefrontLayout';
+import { register } from '@/routes';
 import { Head, Link } from '@inertiajs/react';
 
 interface Product {
@@ -214,7 +215,7 @@ export default function StorefrontIndex({ featuredProducts, popularStores, categ
                     <h2 className="mb-4 text-3xl font-bold text-white">Ready to Start Selling?</h2>
                     <p className="mb-8 text-xl text-indigo-200">Join thousands of merchants already selling on our platform</p>
                     <Link
-                        href="/register?role=merchant"
+                        href={register({ query: { role: 'merchant' } }).url}
                         className="rounded-lg bg-white px-8 py-3 font-semibold text-indigo-600 transition-colors hover:bg-gray-100"
                     >
                         Become a Merchant
