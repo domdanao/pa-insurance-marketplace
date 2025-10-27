@@ -127,11 +127,15 @@ Route::middleware(['auth', 'verified', 'merchant'])->prefix('merchant')->name('m
     Route::post('/products/{product}/publish', [App\Http\Controllers\Merchant\ProductController::class, 'publish'])->name('products.publish');
     Route::post('/products/{product}/unpublish', [App\Http\Controllers\Merchant\ProductController::class, 'unpublish'])->name('products.unpublish');
 
-    // File upload routes
+    // File upload routes (enhanced for bucket storage)
     Route::post('/products/upload-images', [App\Http\Controllers\Merchant\ProductController::class, 'uploadImages'])->name('products.upload-images');
     Route::post('/products/upload-files', [App\Http\Controllers\Merchant\ProductController::class, 'uploadDigitalFiles'])->name('products.upload-files');
     Route::delete('/products/delete-image', [App\Http\Controllers\Merchant\ProductController::class, 'deleteImage'])->name('products.delete-image');
     Route::delete('/products/delete-file', [App\Http\Controllers\Merchant\ProductController::class, 'deleteDigitalFile'])->name('products.delete-file');
+    
+    // Bucket-specific file management routes
+    Route::post('/products/generate-signed-url', [App\Http\Controllers\Merchant\ProductController::class, 'generateSignedUrl'])->name('products.generate-signed-url');
+    Route::get('/products/file-metadata', [App\Http\Controllers\Merchant\ProductController::class, 'getFileMetadata'])->name('products.file-metadata');
 
     // Order management
     Route::get('/orders', [App\Http\Controllers\Merchant\OrderController::class, 'index'])->name('orders');

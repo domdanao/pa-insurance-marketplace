@@ -806,8 +806,8 @@ class AdminDashboardController extends Controller
      */
     public function files(Request $request)
     {
-        // Get storage statistics
-        $publicStorageSize = $this->getDirectorySize(storage_path('app/public'));
+        // Get storage statistics - for bucket storage, we'll estimate based on file counts
+        $publicStorageSize = 0; // Bucket storage size not easily calculable locally
         $privateStorageSize = $this->getDirectorySize(storage_path('app/private'));
 
         // Get file counts and types
@@ -885,7 +885,16 @@ class AdminDashboardController extends Controller
             $referencedImages = Product::whereNotNull('images')
                 ->get()
                 ->flatMap(fn ($product) => $product->images ?? [])
-                ->map(fn ($url) => str_replace(Storage::url(''), '', $url))
+                ->map(function ($url) {
+                    // Extract path from bucket URL or local URL
+                    if (str_contains($url, 'cloudflarestorage.com')) {
+                        // Extract path from bucket URL
+                        $parts = parse_url($url);
+                        return ltrim($parts['path'] ?? '', '/');
+                    }
+                    // For local URLs, extract relative path
+                    return str_replace(asset(''), '', $url);
+                })
                 ->toArray();
 
             $referencedFiles = Product::whereNotNull('digital_files')
@@ -894,7 +903,7 @@ class AdminDashboardController extends Controller
                 ->pluck('path')
                 ->toArray();
 
-            // Scan public storage for orphaned images
+            // Scan public uploads for orphaned images
             $allImages = collect(Storage::disk('public')->allFiles('products'))
                 ->filter(fn ($file) => ! in_array($file, $referencedImages));
 
@@ -954,5 +963,20 @@ class AdminDashboardController extends Controller
         }
 
         return round($bytes, 2).' '.$units[$i];
+    }
+
+    /**
+     * Extract file path from URL for cleanup operations
+     */
+    private function extractPathFromUrl(string $url): string
+    {
+        // Extract path from bucket URL or local URL
+        if (str_contains($url, 'cloudflarestorage.com')) {
+            // Extract path from bucket URL
+            $parts = parse_url($url);
+            return ltrim($parts['path'] ?? '', '/');
+        }
+        // For local URLs, extract relative path
+        return str_replace(asset(''), '', $url);
     }
 }

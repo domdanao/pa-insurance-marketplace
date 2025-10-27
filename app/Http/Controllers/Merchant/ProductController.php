@@ -230,52 +230,131 @@ class ProductController extends Controller
         try {
             $uploadedImages = $fileUploadService->uploadProductImages($images, $store->id);
 
-            Log::info('Images uploaded successfully', [
+            // Prepare enhanced response with storage metadata
+            $imageData = [];
+            foreach ($uploadedImages as $imageUrl) {
+                $imageData[] = [
+                    'url' => $imageUrl,
+                    'storage_type' => $fileUploadService->isUsingBucketStorage() ? 'bucket' : 'local',
+                    'uploaded_at' => now()->toISOString(),
+                ];
+            }
+
+            Log::info('Images uploaded successfully to bucket storage', [
                 'user_id' => $user->id,
                 'store_id' => $store->id,
                 'uploaded_count' => count($uploadedImages),
-                'images' => $uploadedImages
+                'storage_type' => $fileUploadService->isUsingBucketStorage() ? 'bucket' : 'local',
+                'images' => $imageData
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Images uploaded successfully.',
+                'message' => 'Images uploaded successfully to ' . ($fileUploadService->isUsingBucketStorage() ? 'Laravel Cloud bucket' : 'local storage') . '.',
                 'images' => $uploadedImages,
+                'metadata' => [
+                    'storage_type' => $fileUploadService->isUsingBucketStorage() ? 'bucket' : 'local',
+                    'count' => count($uploadedImages),
+                    'uploaded_at' => now()->toISOString(),
+                ],
             ]);
         } catch (\Exception $e) {
             Log::error('Image upload failed', [
                 'user_id' => $user->id,
                 'store_id' => $store->id,
+                'storage_type' => $fileUploadService->isUsingBucketStorage() ? 'bucket' : 'local',
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to upload images: ' . $e->getMessage(),
+                'message' => 'Failed to upload images to ' . ($fileUploadService->isUsingBucketStorage() ? 'Laravel Cloud bucket' : 'local storage') . ': ' . $e->getMessage(),
             ], 500);
         }
     }
 
     public function uploadDigitalFiles(UploadDigitalFilesRequest $request, FileUploadService $fileUploadService)
     {
-        $store = $request->user()->store;
+        $user = $request->user();
+        $store = $user->store;
+
+        // Additional validation
+        if (!$store) {
+            Log::warning('Digital file upload attempted without store', ['user_id' => $user->id]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Store not found. Please create a store first.',
+            ], 400);
+        }
+
+        if (!$store->isApproved()) {
+            Log::warning('Digital file upload attempted with unapproved store', [
+                'user_id' => $user->id,
+                'store_id' => $store->id,
+                'store_status' => $store->status
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Your store must be approved before you can upload digital files.',
+            ], 403);
+        }
+
+        $files = $request->file('files');
+        if (!$files || !is_array($files)) {
+            Log::warning('No digital files provided in upload request', ['user_id' => $user->id]);
+            return response()->json([
+                'success' => false,
+                'message' => 'No digital files provided.',
+            ], 400);
+        }
+
+        Log::info('Digital file upload started', [
+            'user_id' => $user->id,
+            'store_id' => $store->id,
+            'file_count' => count($files),
+            'storage_type' => $fileUploadService->isUsingBucketStorage() ? 'bucket' : 'local'
+        ]);
 
         try {
-            $uploadedFiles = $fileUploadService->uploadDigitalFiles(
-                $request->file('files'),
-                $store->id
-            );
+            $uploadedFiles = $fileUploadService->uploadDigitalFiles($files, $store->id);
+
+            Log::info('Digital files uploaded successfully to bucket storage', [
+                'user_id' => $user->id,
+                'store_id' => $store->id,
+                'uploaded_count' => count($uploadedFiles),
+                'storage_type' => $fileUploadService->isUsingBucketStorage() ? 'bucket' : 'local',
+                'files' => array_map(function($file) {
+                    return [
+                        'filename' => $file['filename'] ?? 'unknown',
+                        'size' => $file['size'] ?? 0,
+                        'storage_type' => $file['storage_type'] ?? 'unknown'
+                    ];
+                }, $uploadedFiles)
+            ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Digital files uploaded successfully.',
+                'message' => 'Digital files uploaded successfully to ' . ($fileUploadService->isUsingBucketStorage() ? 'Laravel Cloud bucket' : 'local storage') . '.',
                 'files' => $uploadedFiles,
+                'metadata' => [
+                    'storage_type' => $fileUploadService->isUsingBucketStorage() ? 'bucket' : 'local',
+                    'count' => count($uploadedFiles),
+                    'uploaded_at' => now()->toISOString(),
+                ],
             ]);
         } catch (\Exception $e) {
+            Log::error('Digital file upload failed', [
+                'user_id' => $user->id,
+                'store_id' => $store->id,
+                'storage_type' => $fileUploadService->isUsingBucketStorage() ? 'bucket' : 'local',
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to upload files: '.$e->getMessage(),
+                'message' => 'Failed to upload digital files to ' . ($fileUploadService->isUsingBucketStorage() ? 'Laravel Cloud bucket' : 'local storage') . ': ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -291,25 +370,39 @@ class ProductController extends Controller
         $this->authorize('update', $product);
 
         try {
-            // Remove image from product's images array
-            $images = $product->images ?? [];
-            $updatedImages = array_filter($images, function ($image) use ($request) {
-                return $image !== $request->image_url;
-            });
+            // Use the Product model's removeImage method for better handling
+            $product->removeImage($request->image_url);
 
-            $product->update(['images' => array_values($updatedImages)]);
-
-            // Delete the actual file
+            // Delete the actual file from storage (bucket or local)
             $fileUploadService->deleteProductImage($request->image_url);
+
+            Log::info('Product image deleted successfully', [
+                'product_id' => $product->id,
+                'image_url' => $request->image_url,
+                'storage_type' => $fileUploadService->isUsingBucketStorage() ? 'bucket' : 'local',
+                'user_id' => $request->user()->id
+            ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Image deleted successfully.',
+                'message' => 'Image deleted successfully from ' . ($fileUploadService->isUsingBucketStorage() ? 'Laravel Cloud bucket' : 'local storage') . '.',
+                'metadata' => [
+                    'storage_type' => $fileUploadService->isUsingBucketStorage() ? 'bucket' : 'local',
+                    'deleted_at' => now()->toISOString(),
+                ],
             ]);
         } catch (\Exception $e) {
+            Log::error('Failed to delete product image', [
+                'product_id' => $product->id,
+                'image_url' => $request->image_url,
+                'storage_type' => $fileUploadService->isUsingBucketStorage() ? 'bucket' : 'local',
+                'error' => $e->getMessage(),
+                'user_id' => $request->user()->id
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete image: '.$e->getMessage(),
+                'message' => 'Failed to delete image from ' . ($fileUploadService->isUsingBucketStorage() ? 'Laravel Cloud bucket' : 'local storage') . ': ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -325,25 +418,134 @@ class ProductController extends Controller
         $this->authorize('update', $product);
 
         try {
-            // Remove file from product's digital_files array
-            $files = $product->digital_files ?? [];
-            $updatedFiles = array_filter($files, function ($file) use ($request) {
-                return $file['path'] !== $request->file_path;
-            });
+            // Use the Product model's removeDigitalFile method for better handling
+            $product->removeDigitalFile($request->file_path);
 
-            $product->update(['digital_files' => array_values($updatedFiles)]);
-
-            // Delete the actual file
+            // Delete the actual file from storage (bucket or local)
             $fileUploadService->deleteDigitalFile($request->file_path);
+
+            Log::info('Digital file deleted successfully', [
+                'product_id' => $product->id,
+                'file_path' => $request->file_path,
+                'storage_type' => $fileUploadService->isUsingBucketStorage() ? 'bucket' : 'local',
+                'user_id' => $request->user()->id
+            ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Digital file deleted successfully.',
+                'message' => 'Digital file deleted successfully from ' . ($fileUploadService->isUsingBucketStorage() ? 'Laravel Cloud bucket' : 'local storage') . '.',
+                'metadata' => [
+                    'storage_type' => $fileUploadService->isUsingBucketStorage() ? 'bucket' : 'local',
+                    'deleted_at' => now()->toISOString(),
+                ],
             ]);
         } catch (\Exception $e) {
+            Log::error('Failed to delete digital file', [
+                'product_id' => $product->id,
+                'file_path' => $request->file_path,
+                'storage_type' => $fileUploadService->isUsingBucketStorage() ? 'bucket' : 'local',
+                'error' => $e->getMessage(),
+                'user_id' => $request->user()->id
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete file: '.$e->getMessage(),
+                'message' => 'Failed to delete digital file from ' . ($fileUploadService->isUsingBucketStorage() ? 'Laravel Cloud bucket' : 'local storage') . ': ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Generate signed URL for private digital file download
+     */
+    public function generateSignedUrl(Request $request, FileUploadService $fileUploadService)
+    {
+        $request->validate([
+            'file_path' => 'required|string',
+            'product_id' => 'required|exists:products,id',
+            'expiration_minutes' => 'sometimes|integer|min:1|max:1440', // Max 24 hours
+        ]);
+
+        $product = Product::findOrFail($request->product_id);
+        $this->authorize('view', $product);
+
+        try {
+            $expirationMinutes = $request->input('expiration_minutes', 60); // Default 1 hour
+            $signedUrl = $fileUploadService->generateSignedUrl($request->file_path, $expirationMinutes);
+
+            Log::info('Signed URL generated for digital file', [
+                'product_id' => $product->id,
+                'file_path' => $request->file_path,
+                'expiration_minutes' => $expirationMinutes,
+                'storage_type' => $fileUploadService->isUsingBucketStorage() ? 'bucket' : 'local',
+                'user_id' => $request->user()->id
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Signed URL generated successfully.',
+                'signed_url' => $signedUrl,
+                'metadata' => [
+                    'expires_at' => now()->addMinutes($expirationMinutes)->toISOString(),
+                    'storage_type' => $fileUploadService->isUsingBucketStorage() ? 'bucket' : 'local',
+                    'generated_at' => now()->toISOString(),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to generate signed URL', [
+                'product_id' => $product->id,
+                'file_path' => $request->file_path,
+                'storage_type' => $fileUploadService->isUsingBucketStorage() ? 'bucket' : 'local',
+                'error' => $e->getMessage(),
+                'user_id' => $request->user()->id
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to generate signed URL: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get file metadata for bucket-stored files
+     */
+    public function getFileMetadata(Request $request, FileUploadService $fileUploadService)
+    {
+        $request->validate([
+            'file_path' => 'required|string',
+            'product_id' => 'required|exists:products,id',
+        ]);
+
+        $product = Product::findOrFail($request->product_id);
+        $this->authorize('view', $product);
+
+        try {
+            $metadata = $fileUploadService->getFileMetadata($request->file_path);
+
+            Log::info('File metadata retrieved', [
+                'product_id' => $product->id,
+                'file_path' => $request->file_path,
+                'metadata' => $metadata,
+                'user_id' => $request->user()->id
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'File metadata retrieved successfully.',
+                'metadata' => $metadata,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to get file metadata', [
+                'product_id' => $product->id,
+                'file_path' => $request->file_path,
+                'error' => $e->getMessage(),
+                'user_id' => $request->user()->id
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to get file metadata: ' . $e->getMessage(),
             ], 500);
         }
     }

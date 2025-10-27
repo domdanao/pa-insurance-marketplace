@@ -467,9 +467,9 @@ This testing plan follows a realistic marketplace setup flow:
 ### File Upload Specifications:
 - **Product Images**: JPG, PNG, GIF, WebP (max 5MB each)
 - **Digital Files**: PDF, ZIP, DOC, DOCX, XLS, XLSX, TXT (max 50MB each)
-- **Storage Locations**: 
-  - Images: `storage/app/public/products/{store_id}/`
-  - Digital files: `storage/app/digital/{store_id}/`
+- **Storage Locations**:
+  - Images: Laravel Cloud bucket `products/images/{store_id}/`
+  - Digital files: Laravel Cloud bucket `products/files/{store_id}/` (private)
 
 ### Test Data Requirements:
 - Categories with products

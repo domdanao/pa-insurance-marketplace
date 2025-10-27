@@ -21,13 +21,22 @@ class UploadDigitalFilesRequest extends FormRequest
      */
     public function rules(): array
     {
+        // Get bucket-specific limits from config
+        $maxFileSize = config('filesystems.default') === 'laravel_cloud'
+            ? config('marketplace.bucket_max_file_size', 102400) // 100MB for bucket
+            : 51200; // 50MB for local
+            
+        $maxFiles = config('filesystems.default') === 'laravel_cloud'
+            ? config('marketplace.bucket_max_files_per_upload', 5)
+            : 3;
+
         return [
-            'files' => ['required', 'array', 'max:3'],
+            'files' => ['required', 'array', 'max:' . $maxFiles],
             'files.*' => [
                 'required',
                 'file',
-                'mimes:pdf,zip,txt,xls,xlsx,doc,docx',
-                'max:51200', // 50MB
+                'mimes:pdf,zip,txt,xls,xlsx,doc,docx,csv,json,xml',
+                'max:' . $maxFileSize,
             ],
         ];
     }
@@ -37,13 +46,25 @@ class UploadDigitalFilesRequest extends FormRequest
      */
     public function messages(): array
     {
+        $maxFiles = config('filesystems.default') === 'laravel_cloud'
+            ? config('marketplace.bucket_max_files_per_upload', 5)
+            : 3;
+            
+        $maxSizeMB = config('filesystems.default') === 'laravel_cloud'
+            ? (config('marketplace.bucket_max_file_size', 102400) / 1024) . 'MB'
+            : '50MB';
+            
+        $storageType = config('filesystems.default') === 'laravel_cloud'
+            ? 'Laravel Cloud bucket'
+            : 'local storage';
+
         return [
             'files.required' => 'Please select at least one file to upload.',
-            'files.max' => 'You can upload a maximum of 3 files at once.',
+            'files.max' => "You can upload a maximum of {$maxFiles} files at once to {$storageType}.",
             'files.*.required' => 'Each uploaded file must be valid.',
             'files.*.file' => 'Each upload must be a valid file.',
-            'files.*.mimes' => 'Files must be of type: pdf, zip, txt, xls, xlsx, doc, or docx.',
-            'files.*.max' => 'Each file must not be larger than 50MB.',
+            'files.*.mimes' => 'Files must be of type: pdf, zip, txt, xls, xlsx, doc, docx, csv, json, or xml.',
+            'files.*.max' => "Each file must not be larger than {$maxSizeMB} for {$storageType}.",
         ];
     }
 }
